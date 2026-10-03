@@ -1,0 +1,122 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>F1C Poster Maker</title>
+<style>
+@font-face{font-family:"MotoGP Display";src:url(MotoGP_Display_Bold.ttf);font-weight:700}
+@font-face{font-family:"MotoGP Text";src:url(MotoGPText-Regular.ttf);font-weight:400}
+@font-face{font-family:"MotoGP Text";src:url(MotoGPText-Bold.ttf);font-weight:700}
+*{box-sizing:border-box}body{margin:0;background:#0b0b0d;color:#eee;font:15px system-ui,sans-serif}
+#top{position:sticky;top:0;z-index:5;background:#0b0b0d;border-bottom:2px solid #e10600;text-align:center;padding-top:6px}
+#cv{height:38vh;aspect-ratio:4/5;max-width:96%;border-radius:6px}
+nav{display:flex;gap:4px;padding:6px;overflow-x:auto}nav button{flex:1;white-space:nowrap}
+button,.bt{background:#26262b;color:#fff;border:0;border-radius:8px;padding:10px 12px;font:inherit;cursor:pointer;display:inline-block}
+nav .on{background:#e10600}
+#panel{padding:12px;max-width:640px;margin:auto;padding-bottom:90px}
+.c{background:#16161a;border-radius:10px;padding:10px;margin:0 0 10px}.h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:8px}.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.f{display:block;margin:0 0 8px}.f span{display:block;font-size:12px;color:#999;margin-bottom:3px}
+input:not([type=checkbox]):not([type=range]):not([type=color]),select{width:100%;padding:10px;background:#1f1f24;color:#fff;border:1px solid #333;border-radius:8px;font-size:16px}
+input[type=range]{width:100%}input[type=color]{width:100%;height:42px;border:0;background:none;padding:0}
+.r{display:grid;grid-template-columns:34px 1fr 84px;gap:6px;margin-bottom:6px;align-items:center}
+.u{display:flex;gap:8px;align-items:center;margin-bottom:8px}.u img,.u i{width:44px;height:44px;object-fit:contain;background:#333;border-radius:6px}
+.w{width:100%;background:#e10600}h3{margin:14px 0 8px}
+#dl{position:fixed;bottom:0;left:0;right:0;border-radius:0;background:#e10600;padding:15px;font-weight:700;z-index:9}
+#ts{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#fff;color:#000;padding:8px 14px;border-radius:20px;opacity:0;transition:.3s;z-index:9}
+</style></head><body>
+<div id="top"><canvas id="cv" width="720" height="900"></canvas><nav id="nv"></nav></div>
+<main id="panel"></main><button id="dl" data-a="dl">⬇ Unduh PNG</button><div id="ts"></div>
+<script>
+const W=720,H=900,$=i=>document.getElementById(i),cv=$('cv');let x=cv.getContext('2d');
+const uid=()=>Math.random().toString(36).slice(2,8),BASE=['MotoGP Display','MotoGP Text','Impact','Arial Black','Georgia'];
+const LN={stripes:'Garis diagonal',checker:'Kotak finish',speed:'Garis kecepatan',carbon:'Serat karbon',dots:'Titik halftone',glow:'Cahaya',chevron:'Panah >>>',kerb:'Kerb merah-putih',track:'Lintasan sirkuit',skid:'Bekas ban',text:'Teks besar'};
+const L=(t,o={})=>({t,c:'#ffffff',o:.06,s:1,r:t=='stripes'?45:0,x:360,y:450,on:1,txt:'RACE',...o});
+const def=()=>({ev:{round:'ROUND 03',place:'DUBAI',brand:'F1C',logoB:'',logoL:''},
+st:{f1:'MotoGP Display',f2:'MotoGP Text',gold:'#f5b53c',bg:'#0e0e10',rowA:'#1b1b1d',rowB:'#2a2a2c',red:'#e10600',pc:'#4a4a4a',ps:1,k:2},rows:7,
+teams:[{id:'nr',name:'Nightrunners',logo:'',c:['#dcdcdc','#7c7c7c','#ffffff']},{id:'rb',name:'Red Bull Racing',logo:'',c:['#d9d9d9','#f2f2f2','#c9c9c9']},{id:'ts',name:'Tim Bintang',logo:'',c:['#8ec9ef','#5aa9de','#111111']},{id:'zv',name:'ZVA',logo:'',c:['#1a2a6c','#0e1840','#0e1840']},{id:'tp',name:'Tim Panah',logo:'',c:['#c8102e','#7a0a1c','#ffffff']}],
+drivers:[['Alexandro','','rb'],['Verrel','','nr'],['Ghani','','ts'],['Zrill','Kazure','nr'],['Rebon','Shin','rb'],['Govan','Vito','zv'],['Prayata','Fajar','tp'],['Pramana','Aditya','tp'],['Ares','Ayrton','ts'],['Reglia','Shin','zv']].map((a,i)=>({id:'d'+i,last:a[0],first:a[1],team:a[2],photo:''})),
+res:['25','18','18','12','DSQ','DNF','DNF','DNS','DNS','DNS'].map((v,i)=>({d:'d'+i,v})),
+layers:[L('stripes',{o:.05,s:1.2}),L('glow',{c:'#e10600',o:.28,y:0,s:1.3}),L('speed',{o:.05})],cf:[]});
+let S;try{S=JSON.parse(localStorage.getItem('f1c1'))}catch(e){}
+S=S||def();{const d=def();S.st={...d.st,...S.st};S.ev={...d.ev,...S.ev};S.cf=S.cf||[]}
+const save=()=>{try{localStorage.setItem('f1c1',JSON.stringify(S))}catch(e){toast('Memori penuh. Kecilkan atau kurangi foto.')}};
+const toast=m=>{const t=$('ts');t.textContent=m;t.style.opacity=1;setTimeout(()=>t.style.opacity=0,2500)};
+const fix=()=>{while(S.res.length<3+S.rows)S.res.push({d:'',v:''})};
+const D=id=>S.drivers.find(d=>d.id==id),TM=id=>S.teams.find(t=>t.id==id)||{name:'',logo:'',c:['#444','#222','#ddd']};
+const lum=c=>{const n=parseInt(c.slice(1),16);return((n>>16)*.3+(n>>8&255)*.59+(n&255)*.11)>150?'#111':'#fff'};
+const IM={};function im(s){if(!s)return null;let i=IM[s];if(!i){i=IM[s]=new Image;i.onload=draw;i.src=s}return i.complete&&i.naturalWidth?i:null}
+const F=(px,f,w=700)=>x.font=`${w} ${px}px "${f}",sans-serif`;
+function T(s,px,fx,fy,al,col,f,mw,w){F(px,f||S.st.f2,w);x.textAlign=al;x.fillStyle=col;x.fillText(s,fx,fy,mw||999)}
+function fit(i,bx,by,bw,bh){if(!i)return;const k=Math.min(bw/i.width,bh/i.height),w=i.width*k,h=i.height*k;x.drawImage(i,bx+(bw-w)/2,by+(bh-h)/2,w,h)}
+const LY={
+stripes:(l,s)=>{for(let i=-30;i<30;i++)x.fillRect(i*110*s,-1800,45*s,3600)},
+checker:(l,s)=>{const q=22*s;for(let r=0;r<3;r++)for(let c=-50;c<50;c++)if((r+c)&1)x.fillRect(c*q,r*q-q*1.5,q,q)},
+speed:(l,s)=>{let a=7;const R=()=>(a=a*16807%2147483647)/2147483647;for(let i=0;i<45;i++)x.fillRect((R()-.5)*1400,(R()-.5)*1400,(120+R()*500)*s,1+R()*3*s)},
+carbon:(l,s)=>{const q=8*s,n=Math.ceil(900/q);for(let i=-n;i<n;i++)for(let j=-n;j<n;j++)if((i+j)&1)x.fillRect(i*q,j*q,q,q)},
+dots:(l,s)=>{const q=16*s,n=Math.ceil(900/q);for(let i=-n;i<n;i++)for(let j=-n;j<n;j++){x.beginPath();x.arc(i*q,j*q,Math.max(0,(j*q+700)/1400)*q*.55,0,7);x.fill()}},
+glow:(l,s)=>{const g=x.createRadialGradient(0,0,0,0,0,380*s);g.addColorStop(0,l.c);g.addColorStop(1,l.c+'00');x.fillStyle=g;x.fillRect(-1000,-1000,2000,2000)},
+chevron:(l,s)=>{x.lineWidth=14*s;for(let i=-8;i<8;i++){x.beginPath();x.moveTo(i*46*s,-40*s);x.lineTo(i*46*s+30*s,0);x.lineTo(i*46*s,40*s);x.stroke()}},
+kerb:(l,s)=>{for(let i=-40;i<40;i++){x.fillStyle=i&1?l.c:'#fff';x.fillRect(i*40*s,-15*s,40*s,30*s)}},
+track:(l,s)=>{x.scale(s*2,s*2);x.translate(-150,-100);x.lineWidth=7;x.lineJoin='round';x.stroke(new Path2D('M30 150C20 100 70 110 100 80S170 20 215 55S285 130 235 168S110 185 70 172Z'))},
+skid:(l,s)=>{x.lineWidth=9*s;for(let k=0;k<3;k++){x.beginPath();x.moveTo(-420,k*26*s);x.bezierCurveTo(-150,-260*s+k*26*s,150,260*s+k*26*s,420,k*26*s);x.stroke()}},
+text:(l,s)=>{F(220*s,S.st.f1);x.textAlign='center';x.textBaseline='middle';x.lineWidth=4;x.strokeText(l.txt,0,0)}};
+function layer(l){x.save();x.globalAlpha=l.o;x.fillStyle=x.strokeStyle=l.c;x.translate(l.x,l.y);x.rotate(l.r*Math.PI/180);LY[l.t](l,l.s);x.restore()}
+function head(){const e=S.ev,s=S.st,lb=im(e.logoB);fit(im(e.logoL),8,6,120,66);
+if(lb)fit(lb,230,8,260,48);else T(e.brand,40,360,28,'center','#fff',s.f1);
+const a=e.round+' ',b='/ '+e.place;F(40,s.f1);const wa=x.measureText(a).width,wb=x.measureText(b).width,x0=360-(wa+wb)/2;
+T(a,40,x0,88,'left',s.gold,s.f1);T(b,40,x0+wa,88,'left','#fff',s.f1)}
+function card(k,cx,cy,w,h){const r=S.res[k],d=D(r.d),t=TM(d&&d.team),[a,b,e]=t.c,ah=h-44,s=S.st,mx=cx+w/2;
+x.save();x.beginPath();x.rect(cx,cy,w,h);x.clip();
+const g=x.createLinearGradient(0,cy,0,cy+h);g.addColorStop(0,a);g.addColorStop(1,b);x.fillStyle=g;x.fillRect(cx,cy,w,h);
+x.save();x.translate(cx+14,cy+62);x.transform(1,0,-.2,1,0,0);T(k+1,118,0,0,'left','#fff',s.f1);x.restore();
+const p=d&&im(d.photo);
+if(p){const q=Math.min(w*1.15/p.width,(ah+8)/p.height)*s.ps;x.drawImage(p,mx-p.width*q/2,cy+ah-p.height*q,p.width*q,p.height*q)}
+else if(d){x.fillStyle='rgba(0,0,0,.22)';x.beginPath();x.arc(mx,cy+ah-170,46,0,7);x.fill();x.beginPath();x.ellipse(mx,cy+ah,90,120,0,Math.PI,2*Math.PI);x.fill()}
+if(r.v){const n=!isNaN(r.v);x.fillStyle='rgba(20,20,20,.95)';x.fillRect(cx+w-52,cy+ah-56,52,56);T(r.v,n?28:16,cx+w-26,cy+ah-(n?36:28),'center',s.gold,s.f1,46);if(n)T('pts',15,cx+w-26,cy+ah-13,'center',s.gold,s.f1)}
+x.fillStyle=e;x.fillRect(cx,cy+ah,w,44);fit(im(t.logo),cx+8,cy+ah+6,34,32);
+T(((d&&(d.last||d.first))||'').toUpperCase(),24,mx+16,cy+ah+23,'center',lum(e),s.f2,w-70);x.restore()}
+function table(){const s=S.st,n=S.rows,rh=Math.min(44,316/Math.max(n,1));
+for(let k=0;k<n;k++){const r=S.res[3+k],d=D(r.d),t=TM(d&&d.team),y=556+k*rh,m=y+rh/2,fs=Math.min(24,rh*.55);
+x.fillStyle=k&1?s.rowB:s.rowA;x.fillRect(22,y,676,rh);x.fillStyle=s.red;x.fillRect(22,y,48,rh);
+T(k+4,Math.min(26,rh*.6),46,m,'center','#fff',s.f1);
+if(d){T(d.first,fs,85,m,'left','#eee',s.f2,null,400);const w=d.first?x.measureText(d.first+' ').width:0;T((d.last||'').toUpperCase(),fs,85+w,m,'left','#fff',s.f2,470-w)}
+const lg=im(t.logo);if(lg)fit(lg,550,y+4,80,rh-8);else if(t.name)T(t.name.slice(0,8).toUpperCase(),Math.min(14,rh*.35),590,m,'center','#aaa',s.f2);
+x.fillStyle=s.pc;x.fillRect(648,y,50,rh);const v=r.v;
+if(v){if(!isNaN(v)&&rh>=34){T(v,Math.min(22,rh*.45),673,y+rh*.36,'center',s.gold,s.f1);T('pts',Math.min(14,rh*.3),673,y+rh*.72,'center',s.gold,s.f1)}else T(v,18,673,m,'center',s.gold,s.f1,44)}}}
+function draw(){x.save();x.fillStyle=S.st.bg;x.fillRect(0,0,W,H);S.layers.forEach(l=>l.on&&layer(l));x.textBaseline='middle';head();[[1,17,181,215,356],[0,253,119,215,418],[2,483,198,215,339]].forEach(a=>card(...a));table();x.restore()}
+function exp(){const k=S.st.k,o=document.createElement('canvas');o.width=W*k;o.height=H*k;const p=x;x=o.getContext('2d');x.scale(k,k);draw();x=p;o.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='race-result.png';a.click()})}
+/* ---------- panel ---------- */
+const E=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const lab=(t,h)=>`<label class="f"><span>${t}</span>${h}</label>`,inp=(p,v,t='text')=>`<input data-p="${p}" type="${t}" value="${E(v)}">`;
+const sel=(p,v,o)=>`<select data-p="${p}" ${typeof v=='number'?'data-n=1':''}>${o.map(([a,b])=>`<option value="${E(a)}"${a==v?' selected':''}>${E(b)}</option>`).join('')}</select>`;
+const rg=(p,v,a,b,st,t)=>lab(t,`<input type="range" data-p="${p}" value="${v}" min="${a}" max="${b}" step="${st}">`);
+const img=(p,v,m,t)=>`<div class="u">${v?`<img src="${v}">`:'<i></i>'}<label class="bt">${t}<input type="file" accept="image/*" data-img="${p}" data-m="${m}" hidden></label>${v?`<button data-a="delI" data-p="${p}">✕</button>`:''}</div>`;
+let tab='res';
+const P={
+res:()=>{const dop=[['','— kosong —'],...S.drivers.map(d=>[d.id,(d.first+' '+d.last).trim()])];
+return `<div class="c"><div class="g">${lab('Ronde',inp('ev.round',S.ev.round))}${lab('Lokasi',inp('ev.place',S.ev.place))}${lab('Teks logo tengah',inp('ev.brand',S.ev.brand))}${lab('Baris tabel',sel('rows',S.rows,[...Array(13).keys()].map(n=>[n,n])))}</div>${img('ev.logoB',S.ev.logoB,400,'Logo tengah')}${img('ev.logoL',S.ev.logoL,300,'Logo kiri atas')}</div><h3>Hasil balapan</h3>`+S.res.slice(0,3+S.rows).map((r,i)=>`<div class="r"><b>P${i+1}</b>${sel(`res.${i}.d`,r.d,dop)}${inp(`res.${i}.v`,r.v)}</div>`).join('')+'<p style="color:#999;font-size:13px">Kolom kecil: isi angka (25) untuk poin, atau tulis DNF / DSQ / DNS.</p>'},
+drivers:()=>S.drivers.map((d,i)=>`<div class="c"><div class="h"><b>${E((d.first+' '+d.last).trim())}</b><button data-a="delD" data-i="${i}">Hapus</button></div><div class="g">${lab('Nama depan',inp(`drivers.${i}.first`,d.first))}${lab('Nama belakang',inp(`drivers.${i}.last`,d.last))}</div>${lab('Tim',sel(`drivers.${i}.team`,d.team,[['','— tanpa tim —'],...S.teams.map(t=>[t.id,t.name])]))}${img(`drivers.${i}.photo`,d.photo,600,'Foto / karakter')}</div>`).join('')+'<button class="w" data-a="addD">+ Tambah pembalap</button>',
+teams:()=>S.teams.map((t,i)=>`<div class="c"><div class="h"><b>${E(t.name)}</b><button data-a="delT" data-i="${i}">Hapus</button></div>${lab('Nama tim',inp(`teams.${i}.name`,t.name))}${img(`teams.${i}.logo`,t.logo,300,'Logo tim')}<div class="g3">${['Warna 1 (atas)','Warna 2 (bawah)','Warna 3 (bar nama)'].map((n,j)=>lab(n,inp(`teams.${i}.c.${j}`,t.c[j],'color'))).join('')}</div></div>`).join('')+'<button class="w" data-a="addT">+ Tambah tim</button>',
+bg:()=>`<div class="c"><div class="g"><select id="lt">${Object.entries(LN).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select><button data-a="addL">+ Tambah grafik</button></div></div>`+S.layers.map((l,i)=>`<div class="c"><div class="h"><b>${LN[l.t]}</b><span><button data-a="upL" data-i="${i}">▲</button> <button data-a="delL" data-i="${i}">Hapus</button></span></div><label><input type="checkbox" data-p="layers.${i}.on" ${l.on?'checked':''}> Tampilkan</label>${rg(`layers.${i}.o`,l.o,0,1,.01,'Transparan')}${rg(`layers.${i}.s`,l.s,.6,4,.05,'Ukuran')}${rg(`layers.${i}.r`,l.r,-180,180,1,'Putar')}${rg(`layers.${i}.x`,l.x,0,720,1,'Geser kiri-kanan')}${rg(`layers.${i}.y`,l.y,0,900,1,'Geser atas-bawah')}${lab('Warna',inp(`layers.${i}.c`,l.c,'color'))}${l.t=='text'?lab('Teks',inp(`layers.${i}.txt`,l.txt)):''}</div>`).join(''),
+st:()=>{const fo=[...BASE,...S.cf.map(f=>f.n)].map(f=>[f,f]);
+return `<div class="c">${lab('Font judul & angka',sel('st.f1',S.st.f1,fo))}${lab('Font nama & tabel',sel('st.f2',S.st.f2,fo))}<label class="bt">+ Upload font (.ttf / .otf)<input type="file" accept=".ttf,.otf,.woff,.woff2" data-font hidden></label></div><div class="c"><div class="g">${[['gold','Emas (judul, poin)'],['bg','Latar poster'],['rowA','Baris tabel 1'],['rowB','Baris tabel 2'],['red','Kotak nomor'],['pc','Kotak poin']].map(([k,n])=>lab(n,inp('st.'+k,S.st[k],'color'))).join('')}</div>${rg('st.ps',S.st.ps,.6,1.6,.02,'Ukuran foto pembalap')}${lab('Ukuran unduhan',sel('st.k',S.st.k,[[1,'720×900'],[2,'1440×1800'],[3,'2160×2700']]))}</div><button class="w" data-a="rst">Reset semua data</button>`}};
+function rd(){$('nv').innerHTML=[['res','Hasil'],['drivers','Pembalap'],['teams','Tim'],['bg','Latar'],['st','Gaya']].map(([k,n])=>`<button data-a="tab" data-t="${k}" class="${k==tab?'on':''}">${n}</button>`).join('');$('panel').innerHTML=P[tab]()}
+const setp=(p,v)=>{const a=p.split('.'),k=a.pop();a.reduce((o,i)=>o[i],S)[k]=v};
+function loadImg(f,max){return new Promise(r=>{const fr=new FileReader;fr.onload=()=>{const i=new Image;i.onload=()=>{const k=Math.min(1,max/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/webp',.9))};i.src=fr.result};fr.readAsDataURL(f)})}
+const regFont=(n,d)=>new FontFace(n,`url(${d})`).load().then(f=>{document.fonts.add(f);draw()});
+$('panel').addEventListener('input',e=>{const t=e.target,p=t.dataset.p;if(!p)return;setp(p,t.type=='checkbox'?+t.checked:(t.type=='range'||t.dataset.n)?+t.value:t.value);if(p=='rows'){fix();rd()}draw();save()});
+$('panel').addEventListener('change',async e=>{const t=e.target,f=t.files&&t.files[0];if(!f)return;
+if(t.dataset.img){setp(t.dataset.img,await loadImg(f,+t.dataset.m));rd();draw();save()}
+else if(t.dataset.font){const fr=new FileReader;fr.onload=()=>{const n=f.name.replace(/\.\w+$/,'');S.cf.push({n,d:fr.result});regFont(n,fr.result);rd();save();toast('Font ditambahkan: '+n)};fr.readAsDataURL(f)}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,i=+b.dataset.i;
+if(a=='tab'){tab=b.dataset.t;rd();return}if(a=='dl'){exp();return}
+if(a=='addD')S.drivers.push({id:uid(),first:'',last:'Pembalap',team:(S.teams[0]||{}).id||'',photo:''});
+if(a=='delD'){const id=S.drivers[i].id;S.drivers.splice(i,1);S.res.forEach(r=>{if(r.d==id)r.d=''})}
+if(a=='addT')S.teams.push({id:uid(),name:'Tim Baru',logo:'',c:['#e10600','#7a0a1c','#ffffff']});
+if(a=='delT'){const id=S.teams[i].id;S.teams.splice(i,1);S.drivers.forEach(d=>{if(d.team==id)d.team=''})}
+if(a=='addL')S.layers.push(L($('lt').value,{o:.12}));
+if(a=='delL')S.layers.splice(i,1);
+if(a=='upL'&&i>0)[S.layers[i-1],S.layers[i]]=[S.layers[i],S.layers[i-1]];
+if(a=='delI')setp(b.dataset.p,'');
+if(a=='rst'){if(!confirm('Hapus semua data dan kembali ke awal?'))return;localStorage.removeItem('f1c1');location.reload();return}
+rd();draw();save()});
+fix();S.cf.forEach(f=>regFont(f.n,f.d));document.fonts.onloadingdone=draw;rd();draw();
+Promise.all(['700 20px "MotoGP Display"','400 20px "MotoGP Text"','700 20px "MotoGP Text"'].map(f=>document.fonts.load(f))).then(draw);
+</script></body></html>
