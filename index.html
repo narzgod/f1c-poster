@@ -99,7 +99,7 @@ if(ty=='c'){x.fillStyle=c[0];x.fillRect(g.fx,g.fy,fw,fh);x.fillStyle=c[1];x.begi
 else{let X=g.fx,w=fw,col=c;if(ty=='u'){x.fillStyle=c[3];x.fillRect(X,g.fy,fw/4,fh);X+=fw/4;w-=fw/4;col=c.slice(0,3)}
 col.forEach((cl,i)=>{x.fillStyle=cl;if(ty=='v')x.fillRect(X+w*i/col.length,g.fy,w/col.length+.6,fh);else x.fillRect(X,g.fy+fh*i/col.length,w,fh/col.length+.6)})}}
 x.restore();x.strokeStyle='#fff';x.lineWidth=2;x.strokeRect(g.fx+1,g.fy+1,fw-2,fh-2)}
-const tx=g.fx+fw+g.tgx,mid=g.fy+fh/2,hg=g.fts*g.tl/2;T(g.cty,g.fts,tx,mid-hg,'left','#fff',s.f2,300,400);T(g.round,g.fts,tx,mid+hg,'left','#fff',s.f2,300);
+const tx=g.fx+fw+g.tgx,mid=g.fy+fh/2,hg=g.fts*g.tl;T(g.cty,g.fts,tx,mid,'left','#fff',s.f2,300,400);T(g.round,g.fts,tx,mid+hg,'left','#fff',s.f2,300);
 x.save();x.translate(g.tx,g.ty);x.rotate(-Math.PI/2);F(100,s.f1);const tw=x.measureText(g.title).width||1,fs=Math.min(125,100*740*g.ts/tw);x.textAlign='center';
 if(g.te){x.strokeStyle=s.red;x.globalAlpha=.6;x.lineWidth=2;F(fs,s.f1);x.strokeText(g.title,7,-7);x.globalAlpha=1}
 F(fs,s.f1);x.fillStyle='#fff';x.fillText(g.title,0,0);x.restore();
@@ -109,7 +109,7 @@ x.save();x.shadowColor='rgba(0,0,0,.5)';x.shadowBlur=14;x.shadowOffsetY=5;bar();
 x.save();bar();x.clip();const sh=x.createLinearGradient(0,y,0,y+rh);sh.addColorStop(0,'rgba(255,255,255,.25)');sh.addColorStop(.5,'rgba(255,255,255,0)');sh.addColorStop(1,'rgba(0,0,0,.22)');x.fillStyle=sh;x.fillRect(xb,y,706-xb,rh);
 const p=d&&im(d.photo,1);if(p){const pw=rh*1.55*g.ps;x.drawImage(p,315+g.px-pw/2,y+g.py,pw,p.height*pw/p.width)}x.restore();
 x.beginPath();x.moveTo(151,y);x.lineTo(xb+5,y);x.lineTo(xb-3,y+rh);x.lineTo(151,y+rh);x.closePath();x.fillStyle=s.red;x.fill();
-const lb=String(r.lab||k+1);T(lb,Math.min(34,rh*.56)*(lb.length>2?.78:1),151+NB/2,m+1,'center','#fff',s.f1,NB-6);
+const lb=String(r.lab||k+1);T(lb,Math.min(36,rh*.6)*(lb.length>3?.8:1),151+NB/2,m+1,'center','#fff',s.f1,NB-6);
 if(d){const lk=g.ls*(t.gls??1)*Math.min(1,rh/64),cl=650+g.lx,nx=368+g.nx,nm=(d.last||d.first||'').toUpperCase(),f0=Math.min(44,rh*.64)*g.ns;F(f0,s.f1);
 const q=Math.max(.3,Math.min(1,(cl-32*lk-12-nx)/Math.max(1,x.measureText(nm).width)));T(nm,f0*q,nx,m+1,'left',lum(a),s.f1);fit(im(t.logo),cl-32*lk,m-22*lk,64*lk,44*lk)}}
 if(g.foot)T(g.foot,12,428,892,'center','#888',s.f2)}
