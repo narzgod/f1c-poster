@@ -34,7 +34,7 @@ const GR=()=>({n:10,round:'ROUND 4',cty:'Italy',title:'STARTING GRID',foot:'',fl
 rows:['d0','d1','d3','d6','d5','d2','d8','d7','d4','d9'].map((d,i)=>({d,lab:i>4?'PIT':''})),
 layers:[L('stripes',{o:.045,s:1.4}),L('glow',{c:'#e10600',o:.32,x:700,y:30,s:1.5}),L('glow',{c:'#2b59ff',o:.16,x:40,y:880,s:1.3}),L('speed',{o:.05})]});
 const def=()=>({ev:{round:'ROUND 03',place:'DUBAI',brand:'F1C',lg:[{src:'',x:70,y:41,h:60},{src:'',x:360,y:28,h:44},{src:'',x:650,y:41,h:60}]},
-st:{f1:'MotoGP Display',f2:'MotoGP Text',gold:'#f5b53c',bg:'#0e0e10',rowA:'#1b1b1d',rowB:'#2a2a2c',red:'#e10600',pc:'#4a4a4a',ps:1,k:2,f3:'MotoGP Display',ns:1,nx:0,ny:0,sk:0,nm:1,pt:1,pls:1,tls:1,tlx:372,cc:28,pg:10},rows:7,mode:'res',gr:GR(),
+st:{f1:'MotoGP Display',f2:'MotoGP Text',gold:'#f5b53c',bg:'#0e0e10',rowA:'#1b1b1d',rowB:'#2a2a2c',red:'#e10600',pc:'#4a4a4a',ps:1,k:2,f3:'MotoGP Display',ns:1,nx:0,ny:0,sk:0,nm:1,pt:1,pls:1,tls:1,tlx:372,cc:28,pg:10,tnx:414},rows:7,mode:'res',gr:GR(),
 teams:[{id:'nr',name:'Nightrunners',logo:'',c:['#dcdcdc','#7c7c7c','#ffffff']},{id:'rb',name:'Red Bull Racing',logo:'',c:['#d9d9d9','#f2f2f2','#c9c9c9']},{id:'ts',name:'Tim Bintang',logo:'',c:['#8ec9ef','#5aa9de','#111111']},{id:'zv',name:'ZVA',logo:'',c:['#1a2a6c','#0e1840','#0e1840']},{id:'tp',name:'Tim Panah',logo:'',c:['#c8102e','#7a0a1c','#ffffff']}],
 drivers:[['Alexandro','','rb'],['Verrel','','nr'],['Ghani','','ts'],['Zrill','Kazure','nr'],['Rebon','Shin','rb'],['Govan','Vito','zv'],['Prayata','Fajar','tp'],['Pramana','Aditya','tp'],['Ares','Ayrton','ts'],['Reglia','Shin','zv']].map((a,i)=>({id:'d'+i,last:a[0],first:a[1],team:a[2],photo:''})),
 res:['25','18','18','12','DSQ','DNF','DNF','DNS','DNS','DNS'].map((v,i)=>({d:'d'+i,v})),
@@ -87,7 +87,7 @@ T(k+4,Math.min(26,rh*.6),46,m,'center','#fff',s.f1);
 if(d){const fs=Math.min(rh*.85,Math.min(24,rh*.55)*s.nm),mw=lx-28*kk-8-85;F(fs,s.f2,400);const w1=d.first?x.measureText(d.first+' ').width:0;F(fs,s.f2);const q=Math.max(.3,Math.min(1,mw/(w1+x.measureText((d.last||'').toUpperCase()).width))),f=fs*q;
 T(d.first,f,85,m,'left','#eee',s.f2,null,400);const w=d.first?x.measureText(d.first+' ').width:0;T((d.last||'').toUpperCase(),f,85+w,m,'left','#fff',s.f2)}
 fit(im(t.logo),lx-28*kk,m-19*kk,56*kk,38*kk);
-if(t.name){const tx=lx+28*kk+10,f0=Math.min(22,rh*.5),tn=t.name.toUpperCase();F(f0,s.f2,400);const q=Math.max(.3,Math.min(1,(640-tx)/x.measureText(tn).width));T(tn,f0*q,tx,m,'left','#ddd',s.f2,null,400)}
+if(t.name){const tx=s.tnx,f0=Math.min(22,rh*.5),tn=t.name.toUpperCase();F(f0,s.f2,400);const q=Math.max(.3,Math.min(1,(640-tx)/x.measureText(tn).width));T(tn,f0*q,tx,m,'left','#ddd',s.f2,null,400)}
 x.fillStyle=s.pc;x.fillRect(648,y,50,rh);const v=r.v;
 if(v){if(!isNaN(v)&&rh>=34){T(v,Math.min(24,rh*.5)*pk,673,y+rh*.38,'center',s.gold,s.f1,46);T('pts',Math.min(17,rh*.38)*pk,673,y+rh*.74,'center',s.gold,s.f1,46)}else T(v,18,673,m,'center',s.gold,s.f1,44)}}}
 function gridAll(){const g=S.gr,s=S.st,n=g.n,pt=Math.min(78,740/Math.max(n,1)),rh=pt*.86,NB=Math.min(76,rh*1.2);
@@ -138,7 +138,7 @@ return `<div class="c">${lab('Font judul & poin',sel('st.f1',s.f1,fo))}${lab('Fo
 <div class="c"><b>Kartu podium</b>${rg('st.cc',s.cc,0,80,1,'Potongan sudut kiri atas')}${rg('st.pg',s.pg,0,40,1,'Jarak logo ke nama')}</div>
 <div class="c"><b>Angka podium</b>${rg('st.ns',s.ns,.4,2,.02,'Ukuran')}${rg('st.nx',s.nx,-60,120,1,'Geser kiri-kanan')}${rg('st.ny',s.ny,-40,100,1,'Geser atas-bawah')}<label><input type="checkbox" data-p="st.sk" ${s.sk?'checked':''}> Miringkan angka (hanya jika fontmu tegak)</label></div>
 <div class="c"><b>Ukuran teks</b>${rg('st.nm',s.nm,.6,1.8,.02,'Nama pembalap')}${rg('st.pt',s.pt,.7,1.6,.02,'Poin dan tulisan pts')}</div>
-<div class="c"><b>Logo tim (Race Result)</b>${rg('st.tls',s.tls,.4,1.8,.02,'Ukuran di tabel')}${rg('st.tlx',s.tlx,200,520,1,'Posisi di tabel (kiri-kanan)')}${rg('st.pls',s.pls,.4,1.8,.02,'Ukuran di kartu podium')}</div>
+<div class="c"><b>Logo tim (Race Result)</b>${rg('st.tls',s.tls,.4,1.8,.02,'Ukuran di tabel')}${rg('st.tlx',s.tlx,200,520,1,'Posisi logo di tabel (kiri-kanan)')}${rg('st.tnx',s.tnx,250,640,1,'Posisi nama tim di tabel (kiri-kanan)')}${rg('st.pls',s.pls,.4,1.8,.02,'Ukuran di kartu podium')}</div>
 <div class="c"><div>${[['gold','Emas (judul, poin)'],['bg','Latar poster'],['rowA','Baris tabel 1'],['rowB','Baris tabel 2'],['red','Kotak nomor'],['pc','Kotak poin']].map(([k,n])=>lab(n,inp('st.'+k,s[k],'color'))).join('')}</div>${lab('Ukuran unduhan',sel('st.k',s.k,[[1,'720×900'],[1.5,'1080×1350'],[2,'1440×1800'],[3,'2160×2700']]))}</div><button class="w" data-a="rst">Reset semua data</button>`}};
 const TABS=()=>[S.mode=='grid'?['gh','Grid']:['res','Hasil'],['drivers','Pembalap'],['teams','Tim'],['bg','Latar'],['st','Gaya']];
 function rd(){const T0=TABS();if(!T0.some(a=>a[0]==tab))tab=T0[0][0];$('md').innerHTML=[['res','Race Result'],['grid','Starting Grid']].map(([k,n])=>`<button data-a="mode" data-m="${k}" class="${S.mode==k?'on':''}">${n}</button>`).join('');$('nv').innerHTML=T0.map(([k,n])=>`<button data-a="tab" data-t="${k}" class="${k==tab?'on':''}">${n}</button>`).join('');$('panel').innerHTML=P[tab]()}
