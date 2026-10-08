@@ -51,7 +51,7 @@ const DB = 'dsm1';
 const idb = () => new Promise((ok, no) => { const r = indexedDB.open(DB, 1); r.onupgradeneeded = () => r.result.createObjectStore('k'); r.onsuccess = () => ok(r.result); r.onerror = no; });
 function impMM() {
   let h; try { h = JSON.parse(localStorage.getItem('f1c-hub')); } catch (e) { }
-  if (!h || !h.drivers || !h.drivers.length) { alert('Data Motorsport belum ada. Isi dulu di Motorsport Manager (menu utama).'); return false; }
+  if (!h || !h.drivers || !h.drivers.length) { alert('Data fRacing Legends belum ada. Isi dulu di fRacing Legends (menu utama).'); return false; }
   const L = v => String(v).trim().toLowerCase(), dk = c => { const n = parseInt(c.slice(1), 16), f = k => Math.round(((n >> k) & 255) * .55).toString(16).padStart(2, '0'); return '#' + f(16) + f(8) + f(0); };
   const teams = h.teams.map(t => { const o = S.teams.find(x => L(x.name) == L(t.name)); return Object.assign(o ? { ...o } : { id: uid(), name: t.name, logo: null, logoScale: 100 }, { c1: t.col, c2: dk(t.col), c3: contrast(t.col) }); });
   const drivers = h.drivers.map(x => { const o = S.drivers.find(v => L(v.name) == L(x.name)), t = teams.find(v => L(v.name) == L(x.team)) || teams[0]; return { id: o ? o.id : uid(), name: x.name, photo: o ? o.photo : null, teamId: t.id }; });
@@ -228,7 +228,7 @@ function panelHTML() {
   <div class="card"><h3>Bendera</h3>${flagSel('flagEvent', 'Bendera di kiri nama negara / GP (kanan atas)', S.flagEvent)}${flagSel('flagNext', 'Bendera di kiri negara pada teks bawah', S.flagNext)}<p class="hint">Panjang bendera menyesuaikan bentuk gambar, garis tepi putih tipis.</p></div>
   <div class="card"><h3>Warna</h3>
   <div class="row"><div><label>Warna latar</label>${col('bg', S.bg)}</div><div><label>Warna aksen (kolom poin)</label>${col('accent', S.accent)}</div></div></div>
-  <div class="card"><h3>Cadangan data</h3><div class="row"><button id="exp">Simpan file data</button><button id="imp">Buka file data</button><button id="impMM">Ambil dari Motorsport</button></div><input id="impf" type="file" accept=".json" hidden></div>`;
+  <div class="card"><h3>Cadangan data</h3><div class="row"><button id="exp">Simpan file data</button><button id="imp">Buka file data</button><button id="impMM">Ambil dari fRacing Legends</button></div><input id="impf" type="file" accept=".json" hidden></div>`;
   if (tab === 'text') { const c = S.titleCfg; return `<div class="card"><h3>Judul poster</h3>${rng('titleCfg.x', 'Posisi kiri–kanan', c.x, -300, 1080)}${rng('titleCfg.y', 'Posisi atas–bawah', c.y, 20, 700)}${rng('titleCfg.size', 'Ukuran huruf', c.size, 20, 180)}${rng('titleCfg.gap', 'Jarak antar baris', c.gap, 10, 260)}${rng('titleCfg.sx', 'Lebar teks (%)', c.sx, 50, 220)}${rng('titleCfg.sy', 'Tinggi teks (%)', c.sy, 50, 220)}${rng('titleCfg.ls', 'Jarak antar huruf', c.ls, -5, 40, 0.5)}<button id="resetTitle" style="margin-top:10px">Kembalikan judul ke awal</button></div>
   <div class="card"><h3>Nama driver</h3>${rng('nameScale', 'Ukuran teks nama (%)', S.nameScale, 50, 140)}<p class="hint">Nama yang terlalu panjang otomatis mengecil sampai muat di dalam kotak tim.</p></div>
   <div class="card"><h3>Font tiap teks</h3>${fontPick('title', 'Judul')}${fontPick('lead', 'Teks kecil kanan atas')}${fontPick('event', 'Nama negara / GP')}${fontPick('name', 'Nama driver')}${fontPick('points', 'Angka poin')}${fontPick('pos', 'Nomor posisi')}${fontPick('move', 'Angka naik / turun')}${fontPick('footer', 'Teks bawah')}<p class="hint">Mau font sendiri? Unggah di tab Font.</p></div>`; }

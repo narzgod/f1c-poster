@@ -1,0 +1,60 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#0c0d12"><link rel="stylesheet" href="style.css"><title>Admin - fRacing Legends</title><meta name="robots" content="noindex,nofollow"></head><body>
+<div id="top"><div class="tb" id="tb"></div></div><div class="w"><div id="msg"></div><div id="app"></div></div><div id="bar"></div>
+<div id="top"><div class="tb" id="tb"></div></div><div class="w"><div id="msg"></div><div id="app"></div></div><div id="bar"></div>
+<script src="core.js"></script>
+<script>
+let adm=false,at='ev',curEv=null,eT=null,ed={ses:'q0',n:5,rows:[],fl:'',dr:'',rid:null};
+try{adm=sessionStorage.getItem('f1c-adm')=='1'}catch(e){}
+const E=()=>S.ev.find(x=>x.id==curEv)||S.ev[0];
+const nmL=d=>{const x=S.dr.find(y=>y.did==d);return x?nmLabel(x):d};
+const dopts=(e,sel)=>opt([['','Pilih driver']].concat(evD(e).map(d=>[d,nmL(d)])),sel);
+const rng=s=>s=='fe'?[5,10]:[5,20];
+function ldEd(r){const s=ed.ses,rows=get(r,s),[a,b]=rng(s);ed.rows=rows.map(x=>({...x}));ed.n=Math.min(b,Math.max(a,rows.length||a));ed.fl=r.fl[s]||'';ed.dr=r.dr[s]||''}
+function col(){ed.rows=[...Array(ed.n)].map((_,i)=>({did:($('#p'+i)||{}).value||'',tyre:($('#y'+i)||{}).value||'Soft',st:($('#s'+i)||{}).value||''}));if($('#fl')){ed.fl=$('#fl').value;ed.dr=$('#dd').value}}
+const chN=v=>{col();ed.n=+v;render()},chS=v=>{ed.ses=v;ldEd(S.rc.find(r=>r.id==ed.rid));render()},chR=v=>{ed.rid=v;ldEd(S.rc.find(r=>r.id==v));render()};
+function saveRes(){col();const r=S.rc.find(x=>x.id==ed.rid),s=ed.ses,ids=ed.rows.map(x=>x.did);
+if(ids.some(x=>!x))return say('Semua posisi harus diisi driver.');if(new Set(ids).size<ids.length)return say('Ada driver yang dipilih dua kali.');
+if(s[0]=='q')r.q[+s[1]]=ed.rows;else{r[s]=ed.rows;r.fl[s]=ed.fl;r.dr[s]=ed.dr}save();say('Hasil tersimpan. Grid dan klasemen terhitung otomatis.')}
+function addEv(){const n=$('#en').value.trim(),q=+$('#eq').value;if(!n||q<1)return say('Isi nama event dan kuota tim.');
+const e={id:uid(),name:n,cls:$('#ec').value,quota:q,soc:$('#es').checked,reg:$('#er').checked,col:$('#ecl').value};S.ev.push(e);curEv=e.id;save();say('Event dibuat.');render()}
+function addRc(){const e=E(),c=$('#rcc').value.trim();if(!e||!c)return say('Pilih event dan isi nama sirkuit.');
+S.rc.push({id:uid(),ev:e.id,flag:$('#rf').value.trim(),country:$('#rn').value.trim(),circ:c,date:$('#rd').value,q:[[],[],[]],sp:[],fe:[],fl:{},dr:{}});save();say('Balapan ditambahkan.');render()}
+const delRc=i=>{if(confirm('Hapus balapan ini?')){S.rc=S.rc.filter(r=>r.id!=i);save();render()}};
+const tog=(i,k)=>{const e=S.ev.find(x=>x.id==i);e[k]=k=='reg'?!isOpen(e):!e[k];save();render()};
+const setQ=i=>{const e=S.ev.find(x=>x.id==i),v=parseInt(prompt('Kuota tim baru:',e.quota));if(v>0){e.quota=v;save();render()}};
+const delEv=i=>{if(!confirm('Hapus event beserta tim dan hasilnya?'))return;S.ev=S.ev.filter(e=>e.id!=i);S.tm=S.tm.filter(t=>t.ev!=i);S.rc=S.rc.filter(r=>r.ev!=i);curEv=null;save();render()};
+const delTm=i=>{if(confirm('Hapus tim ini?')){S.tm=S.tm.filter(t=>t.id!=i);save();render()}};
+function saveT(){if(saveTeam(true)){eT=null;say('Tim tersimpan.');render()}}
+function addDr(){const r=addLic($('#dnm').value,$('#did').value);if(r)return say(r);say('Lisensi ditambahkan.');render()}
+function chDid(o,n){S.tm.forEach(t=>{t.d=t.d.map(x=>x==o?n:x);if(t.num&&t.num[o]){t.num[n]=t.num[o];delete t.num[o]}});
+S.rc.forEach(r=>{[...r.q.flat(),...r.sp,...r.fe].forEach(x=>{if(x.did==o)x.did=n});['fl','dr'].forEach(k=>Object.keys(r[k]).forEach(s=>{if(r[k][s]==o)r[k][s]=n}))})}
+function upDr(i){const d=S.dr[i],n=$('#an'+i).value.trim().replace(/\s+/g,' '),id=$('#ad'+i).value.trim(),w=n.split(' ').length;
+if(!n||w<2||w>3)return say('Nama harus 2 sampai 3 kata.');if(!/^\d{4}$/.test(id))return say('DID harus tepat 4 angka.');
+if(id!=d.did){if(S.dr.some(x=>x.did==id))return say('DID sudah dipakai.');chDid(d.did,id);d.did=id}d.name=n;save();say('Lisensi diperbarui.');render()}
+function delDr(i){const d=S.dr[i];if(S.tm.some(t=>t.d.includes(d.did)))return say('Driver masih terdaftar di sebuah tim. Edit tim itu dulu.');if(confirm('Hapus lisensi '+d.name+'?')){S.dr.splice(i,1);save();render()}}
+const login=()=>{if($('#ac').value===S.code){adm=true;try{sessionStorage.setItem('f1c-adm','1')}catch(e){}render()}else say('Kode salah.')};
+const logout=()=>{adm=false;try{sessionStorage.removeItem('f1c-adm')}catch(e){}render()};
+const setCode=()=>{const c=$('#nc').value.trim();if(c.length<4)return say('Kode minimal 4 karakter.');S.code=c;save();say('Kode diganti.')};
+function pAd(){if(!adm)return`<div class=f><h3>Masuk Admin</h3><label>Kode akses</label><input id=ac type=password><button class=bt onclick=login()>Masuk</button><p class=m>Kode awal: ADMIN2026. Segera ganti setelah masuk.</p></div>`;
+const e=E();if(e)curEv=e.id;
+let h=`<div class=ch>${[['ev','Event'],['rc','Balapan'],['hs','Hasil'],['tm','Tim'],['dr','Driver'],['kd','Kode']].map(([k,n])=>`<button class="${at==k?'on':''}" onclick="at='${k}';eT=null;say('');render()">${n}</button>`).join('')}</div>`;
+if(at=='kd')return h+`<div class=f><h3>Ganti Kode Admin</h3><label>Kode baru</label><input id=nc type=password><button class=bt onclick=setCode()>Simpan</button><button class="bt s" onclick=logout()>Keluar</button></div>`;
+if(at=='dr')return h+`<div class=f><h3>Tambah Lisensi</h3><label>Nama</label><input id=dnm><label>DID</label><input id=did inputmode=numeric maxlength=4><button class=bt onclick=addDr()>Tambah</button></div>`+S.dr.map((d,i)=>`<div class=f><label>Nama</label><input id=an${i} value="${esc(d.name)}"><label>DID</label><input id=ad${i} value="${d.did}" maxlength=4 inputmode=numeric><button class=x onclick="upDr(${i})">Simpan</button><button class=x onclick="delDr(${i})">Hapus</button></div>`).join('');
+if(at=='ev')return h+`<div class=f><h3>Buat Event Baru</h3><label>Nama event</label><input id=en><label>Kelas</label><select id=ec>${opt(CL.map(c=>[c,c]))}</select><label>Kuota tim</label><input id=eq type=number min=1><label>Warna event</label><input id=ecl type=color value="#e10600"><label class=ck><input id=er type=checkbox checked> Pendaftaran tim dibuka</label><label class=ck><input id=es type=checkbox checked> Minta akun sosial tim</label><button class=bt onclick=addEv()>Buat Event</button></div>`+S.ev.map(x=>`<div class=f><b>${esc(x.name)}</b> <span class=m>${x.cls} · ${evT(x).length}/${x.quota} tim</span><br><button class=x onclick="tog('${x.id}','reg')">Pendaftaran: ${isOpen(x)?'Dibuka':'Ditutup'}</button><button class=x onclick="tog('${x.id}','soc')">Akun sosial: ${x.soc?'ON':'OFF'}</button><button class=x onclick="setQ('${x.id}')">Kuota</button><button class=x onclick="delEv('${x.id}')">Hapus</button></div>`).join('');
+if(!e)return h+'<p class=m>Buat event dulu.</p>';
+h+=`<div class=f><label>Event aktif</label><select onchange="curEv=this.value;ed.rid=null;eT=null;render()">${opt(S.ev.map(x=>[x.id,x.name]),e.id)}</select></div>`;
+if(at=='tm'){const ts=evT(e),t=ts.find(x=>x.id==eT);
+if(eT)return h+teamForm(e,t||null)+`<button class=bt onclick=saveT()>Simpan Perubahan</button><button class="bt s" onclick="eT=null;render()">Batal</button>`;
+return h+`<div class=hero><small>Pendaftaran tim</small><b>${ts.length} / ${e.quota}</b><span>${isOpen(e)?'Dibuka':'Ditutup'}</span></div><button class=bt style="margin:0 0 14px" onclick="eT='new';render()">Tambah Tim</button>`+ts.map(t=>`<div class=cd style="--a:${t.col||'#8b93a7'}"><div class=rw><div class=nm style="color:${t.col}">${esc(t.name)}<small>${e.soc&&t.soc?esc(t.soc)+' · ':''}Principal ${lk(t.tp,t.tpl)} · Owner ${lk(t.ow,t.owl)}</small></div></div><div class=tp style="display:block">${t.d.map((d,i)=>d?`<div>${['Driver 1','Driver 2','Reserve 1','Reserve 2'][i]}: ${(t.num||{})[d]?'#'+t.num[d]+' ':''}${esc(dn(d))} <span class=m>(DID ${d})</span></div>`:'').join('')}<button class=x onclick="eT='${t.id}';render()">Edit</button><button class=x onclick="delTm('${t.id}')">Hapus</button></div></div>`).join('')}
+const rs=S.rc.filter(r=>r.ev==e.id);
+if(at=='rc')return h+`<div class=f><h3>Tambah Balapan</h3><label>Tanggal</label><input id=rd type=date><label>Kode negara (ID, JP, GB) atau emoji bendera</label><input id=rf><label>Nama negara</label><input id=rn><label>Nama sirkuit</label><input id=rcc><button class=bt onclick=addRc()>Tambah</button></div>`+rs.map(r=>`<div class=f>${fl(r.flag)} ${esc(r.circ)}<br><button class=x onclick="delRc('${r.id}')">Hapus</button></div>`).join('');
+if(!rs.length)return h+'<p class=m>Tambah balapan dulu.</p>';
+if(!rs.some(r=>r.id==ed.rid)){ed.rid=rs[0].id;ldEd(rs[0])}
+const s=ed.ses,[a,b]=rng(s);
+h+=`<div class=f><h3>Input Hasil</h3><label>Balapan</label><select onchange=chR(this.value)>${opt(rs.map((x,i)=>[x.id,'Round '+(i+1)+' - '+x.circ]),ed.rid)}</select><label>Sesi</label><select onchange=chS(this.value)>${opt(Object.entries(NM),s)}</select><label>Jumlah driver</label><select onchange=chN(this.value)>${opt([...Array(b-a+1)].map((_,i)=>[a+i,(a+i)+' driver']),ed.n)}</select>`;
+for(let i=0;i<ed.n;i++){const x=ed.rows[i]||{};h+=`<label>Posisi ${i+1}</label><div class=pk><select id=p${i}>${dopts(e,x.did)}</select><select id=y${i}>${opt(TY.map(t=>[t,t]),x.tyre)}</select><select id=s${i}>${opt([['','Finish'],['DSQ','DSQ'],['DNS','DNS'],['DNF','DNF']],x.st)}</select></div>`}
+if(s[0]!='q')h+=`<label>Fastest Lap</label><select id=fl>${dopts(e,ed.fl)}</select><label>Driver of the Day</label><select id=dd>${dopts(e,ed.dr)}</select>`;
+return h+`<button class=bt onclick=saveRes()>Simpan Hasil</button>${evD(e).length<5?'<p class=m>Pilihan driver muncul setelah tim mendaftar.</p>':''}</div>`}
+function render(){mount('Admin',null,null,pAd(),'#e10600');if(adm&&at=='tm'&&eT&&E())pfAll(true)}
+render();
+</script></body></html>
