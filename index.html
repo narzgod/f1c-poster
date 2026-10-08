@@ -48,6 +48,7 @@ body{background:#0b0707 radial-gradient(ellipse at top,#3a0b0b 0%,#0b0707 60%) f
 
 <script>
 const TOOLS=[
+ {id:"motorsport",t:"Motorsport Manager",d:"Kelola event: driver, tim, jadwal, hasil, klasemen, dan juara umum. Datanya bisa dipakai tool poster",img:"",src:"tools/motorsport/index.html"},
  {id:"race-result",  t:"Race Result",       d:"Poster hasil race: podium P1-P3 dan daftar P4-P10",           img:"assets/f1c.jpg",    src:"tools/race-result/index.html"},
  {id:"poster-studio",t:"Poster Studio",     d:"Studio poster lengkap: Winner, Pole, Fastest dan lainnya",     img:"assets/studio.jpg", src:"tools/poster-studio/index.html"},
  {id:"race-week",    t:"Race Week",         d:"Poster pengumuman Race Week dengan bendera dan nama GP",       img:"assets/race.jpg",   src:"tools/race-week/index.html"},
@@ -59,7 +60,7 @@ const list=$("list"),viewer=$("viewer"),slot=$("slot");
 TOOLS.forEach(x=>{
   const b=document.createElement("button");
   b.className="card";
-  b.innerHTML='<div class="im" style="background-image:url('+x.img+')"></div><div class="tx"><h2>'+x.t+'</h2><p>'+x.d+'</p></div>';
+  b.innerHTML=(x.img?'<div class="im" style="background-image:url('+x.img+')"></div>':'<div class="im" style="height:90px;display:flex;align-items:center;justify-content:center;font-size:44px">🏁</div>')+'<div class="tx"><h2>'+x.t+'</h2><p>'+x.d+'</p></div>';
   b.onclick=()=>{history.pushState({tool:x.id},"","#"+x.id);open(x.id)};
   list.appendChild(b);
 });

@@ -1,0 +1,161 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Motorsport Manager</title>
+<style>
+*{box-sizing:border-box}:root{--a:#d11;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:#171722;color:#fff;font:600 15px system-ui,sans-serif}
+.w{max-width:600px;margin:auto;padding-bottom:90px}
+#top{position:sticky;top:env(safe-area-inset-top,0px);background:#0e0e12;z-index:5}
+.tb{display:flex;align-items:center;gap:12px;padding:14px;max-width:600px;margin:auto}.tb h2{flex:1;margin:0;font-size:20px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tb a{color:#fff;text-decoration:none;font-size:22px}
+.ln{height:4px;background:var(--a)}
+#bar{position:fixed;bottom:0;left:0;right:0;background:#1d1d27;border-top:1px solid #333;display:flex;padding-bottom:env(safe-area-inset-bottom,0px)}
+#bar a{flex:1;text-align:center;padding:9px 0;color:#888;text-decoration:none;font-size:12px;border-top:3px solid transparent}#bar a b{display:block;font-size:20px}
+#bar a.on{color:var(--a);border-color:var(--a);background:linear-gradient(#0000,#fff1)}
+.cd{display:block;background:linear-gradient(#1c1c20,#000);border-bottom:3px solid var(--a);margin:10px;color:#fff;text-decoration:none;padding:6px 0 0}
+.rw{display:flex;align-items:center;gap:14px;padding:10px 14px}.rw>span{color:#ccc;align-self:flex-end}
+.nm{flex:1;font-size:20px;font-weight:800}.nm small{display:block;font-size:12px;color:#9aa;font-weight:600}
+.fb{background:#fff;border-radius:8px;border:2px solid #fff;font-size:36px;line-height:1.1;padding:4px 8px;min-width:70px;text-align:center}
+.tp{display:flex;gap:12px;padding:8px 14px 10px 110px;background:#000;font-size:13px;flex-wrap:wrap}.tp i{font-style:normal;margin-left:5px}
+.pb{display:inline-block;min-width:26px;text-align:center;background:#0b0b12;border:1px solid #333;padding:6px;border-radius:3px}.pb.p1{background:var(--a);color:#000;border-color:var(--a)}.pb.dim{color:#444}
+.rh{display:flex;gap:14px;align-items:center;padding:16px;background:linear-gradient(120deg,#0e0e12 45%,color-mix(in srgb,var(--a) 45%,#0e0e12))}
+.rh h3{margin:0;font-size:24px;color:var(--a)}.rh div div{color:var(--a);font-size:18px}
+.fx{padding:8px 16px;display:flex;gap:18px;flex-wrap:wrap;font-size:13px;background:#0e0e12;border-bottom:3px solid #fff}.fx i{display:block;color:#ddd}
+.ch{display:flex;gap:6px;overflow-x:auto;padding:10px}.ch a{padding:7px 12px;border-radius:16px;background:#222230;color:#ccc;text-decoration:none;white-space:nowrap;font-size:13px;border:0}.ch .on{background:var(--a);color:#000}
+.sc{overflow-x:auto}table{border-collapse:collapse;width:100%;background:#14141c}th,td{padding:8px 6px;border-bottom:1px solid var(--a);text-align:left;white-space:nowrap;font-size:14px}th{font-size:12px}
+.f{background:#1d1d27;margin:10px;padding:12px;border-radius:10px}.f b{color:var(--a)}
+input,select,button{font:inherit;padding:9px;margin:3px 0;border:1px solid #333;border-radius:8px;background:#0e0e12;color:#fff;max-width:100%}
+input:not([type=checkbox]):not([type=color]),select{width:100%}button{background:var(--a);color:#000;border:0}.x{background:none;color:var(--a);padding:2px 6px}
+.er{display:grid;grid-template-columns:30px 2fr 1fr 1fr;gap:4px;align-items:center}.er select{padding:6px 2px}
+.m{color:#9aa;padding:10px}#msg{color:#ff6;padding:0 14px;min-height:18px}
+</style></head><body>
+<div id=top><div class=tb id=tb></div><div class=ln></div></div><div class=w><div id=msg></div><div id=app></div></div><div id=bar></div>
+<script>
+let S,at='ev',curEv=null,ed={ses:'q0',n:5,rows:[],fl:'',dr:'',rid:null},adm=false;
+try{S=JSON.parse(localStorage.getItem('f1c-mm'))}catch(e){}
+S=S||{ev:[],dr:[],tm:[],rc:[],code:'ADMIN2026'};
+const save=()=>{try{localStorage.setItem('f1c-mm',JSON.stringify(S));localStorage.setItem('f1c-hub',JSON.stringify(hub()))}catch(e){}};
+const $=s=>document.querySelector(s),say=t=>{$('#msg').textContent=t};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const CL=['ROOKIE CLASS','CLASS D','CLASS C','CLASS B','CLASS A','CLASS PRO'],TY=['Soft','Medium','Hard','Inter','Wet'];
+const NM={q0:'Qualify 1',q1:'Qualify 2',q2:'Qualify 3',sp:'Sprint Race',fe:'Race'};
+const PF=[25,18,15,12,10,8,6,4,2,1],PS=[8,7,6,5,4,3,2,1];
+const uid=()=>Math.random().toString(36).slice(2,8);
+const dr_=d=>S.dr.find(x=>x.did==d)||{};
+const dn=d=>dr_(d).name||d||'',noOf=d=>dr_(d).no||d;
+const sn=n=>{const p=(n||'').split(' ');return p.length>1?p[0]+' '+p[p.length-1][0]+'.':n};
+const fl=c=>/^[a-z]{2}$/i.test(c||'')?String.fromCodePoint(...c.toUpperCase().split('').map(x=>127397+x.charCodeAt(0))):esc(c);
+const evT=e=>S.tm.filter(t=>t.ev==e.id),evD=e=>[...new Set(evT(e).flatMap(t=>t.d.filter(Boolean)))];
+const tmO=(e,d)=>evT(e).find(t=>t.d.includes(d))||{},tc=(e,d)=>tmO(e,d).col||'#9aa';
+const get=(r,s)=>s[0]=='q'?r.q[+s[1]]:r[s];
+const lastQ=r=>{const q=r.q.filter(a=>a.length);return q.length?q[q.length-1]:[]};
+const opt=(a,sel)=>a.map(([v,t])=>`<option value="${esc(v)}" ${v==sel?'selected':''}>${esc(t)}</option>`).join('');
+const dopts=(e,sel)=>opt([['','— driver —']].concat(evD(e).map(d=>[d,d+' · '+dn(d)])),sel);
+const chips=a=>`<div class=ch>${a.map(([t,h,on])=>`<a href="${h}" class="${on?'on':''}">${t}</a>`).join('')}</div>`;
+
+function stats(e){const m={},g=d=>m[d]=m[d]||{p:0,w:0,po:0,pd:0,fl:0,dr:0};evD(e).forEach(g);
+S.rc.filter(r=>r.ev==e.id).forEach(r=>{const q=lastQ(r);if(q[0])g(q[0].did).po++;
+[['sp',PS],['fe',PF]].forEach(([k,P])=>{r[k].forEach((x,i)=>{const s=g(x.did);if(x.st)return;s.p+=P[i]||0;if(!i)s.w++;if(i<3)s.pd++});
+if(r.fl[k])g(r.fl[k]).fl++;if(r.dr[k])g(r.dr[k]).dr++})});return m}
+
+
+function allStats(){const d={},t={};S.ev.forEach(e=>{const m=stats(e);Object.keys(m).forEach(k=>{const a=d[k]=d[k]||{p:0,w:0,po:0,pd:0,fl:0,dr:0,ev:0,tm:'-',col:'#9aa'},x=m[k];['p','w','po','pd','fl','dr'].forEach(f=>a[f]+=x[f]);a.ev++;const o=tmO(e,k);if(o.name){a.tm=o.name;a.col=o.col||a.col;const q=t[o.name.toLowerCase()]=t[o.name.toLowerCase()]||{name:o.name,col:'#9aa',p:0};q.p+=x.p;q.col=o.col||q.col}})});return{d,t}}
+function hub(){const A=allStats();return{t:Date.now(),teams:Object.values(A.t).map(x=>({name:x.name,col:x.col,pts:x.p})).sort((a,b)=>b.pts-a.pts),drivers:Object.keys(A.d).map(k=>({did:k,name:dn(k),no:noOf(k),team:A.d[k].tm,col:A.d[k].col,pts:A.d[k].p})).sort((a,b)=>b.pts-a.pts)}}
+function pAll(sub){if(!S.ev.length)return'<p class=m>Belum ada event.</p>';const A=allStats(),B='#/overall/',ch=chips([['Driver',B+'drv',sub!='tim'],['Tim',B+'tim',sub=='tim']]);
+if(sub=='tim'){const ts=Object.values(A.t).sort((a,b)=>b.p-a.p);return ch+(ts.length?`<div class=f>👑 Tim terbaik: <b>${esc(ts[0].name)}</b> · ${ts[0].p} poin</div><div class=sc><table><tr><th>Pos<th>Tim<th>Poin</tr>${ts.map((t,i)=>`<tr><td><b class="pb ${i?'':'p1'}">${i+1}</b><td style="color:${t.col}"><i>${esc(t.name)}</i><td><b>${t.p}</b>`).join('')}</table></div>`:'<p class=m>Belum ada data.</p>')}
+const ds=Object.keys(A.d).sort((a,b)=>A.d[b].p-A.d[a].p||A.d[b].w-A.d[a].w);
+return ch+(ds.length?`<div class=f>👑 Pembalap terbaik: <b>${esc(dn(ds[0]))}</b> · ${A.d[ds[0]].p} poin dari ${A.d[ds[0]].ev} event</div><div class=sc><table><tr><th>Pos<th>No<th>Driver<th>Tim<th>Poin<th>Win<th>Pole<th>Pod<th>FL<th>DotR<th>Event</tr>${ds.map((d,i)=>{const x=A.d[d];return`<tr><td><b class="pb ${i?'':'p1'}">${i+1}</b><td style="color:${x.col}">${esc(noOf(d))}<td>${esc(dn(d))}<td style="color:${x.col}"><i>${esc(x.tm)}</i><td><b>${x.p}</b><td>${x.w}<td>${x.po}<td>${x.pd}<td>${x.fl}<td>${x.dr}<td>${x.ev}`}).join('')}</table></div>`:'<p class=m>Belum ada data.</p>')}
+
+function pHome(){return S.ev.length?S.ev.map(e=>`<a class=cd style="--a:${e.col||'#00d4ff'}" href="#/e/${e.id}/race"><div class=rw><div class=nm>${esc(e.name)}<small>${e.cls} · ${evT(e).length}/${e.quota} tim</small></div><span>›</span></div></a>`).join(''):'<p class=m>Belum ada event. Admin bisa membuatnya di tab Admin.</p>'}
+
+function pRace(e){const rs=S.rc.filter(r=>r.ev==e.id).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+if(!rs.length)return'<p class=m>Belum ada jadwal balapan.</p>';
+return rs.map(r=>{const rows=r.fe.length?r.fe:r.sp,top=rows.filter(x=>!x.st).slice(0,3);
+return`<a class=cd href="#/r/${r.id}"><div class=rw><div class=fb>${fl(r.flag)}</div><div class=nm>${esc(r.circ)}<small>${esc(r.country)}${r.date?' · '+esc(r.date):''}</small></div><span>${rows.length?'Done':'Upcoming'}</span></div><div class=tp>${top.map((x,i)=>`<span><b class=pb>${i+1}</b><i style="color:${tc(e,x.did)}">${esc(sn(dn(x.did)))}</i></span>`).join('')}</div></a>`}).join('')}
+
+function pRes(e,r,ses){const av=Object.keys(NM).filter(s=>get(r,s).length),h0=`<div class=rh><div class=fb>${fl(r.flag)}</div><div><h3>${esc(r.circ)}</h3>`;
+if(!av.length)return h0+'</div></div><p class=m>Belum ada hasil.</p>';
+if(!av.includes(ses))ses=av.includes('fe')?'fe':av.includes('sp')?'sp':av[av.length-1];
+const rows=get(r,ses),q=lastQ(r),isR=ses[0]!='q',pole=q[0]?esc(dn(q[0].did)):'-';
+return h0+`<div>${NM[ses]}</div></div></div><div class=fx>${isR?`<div>Fastest Lap:<i>${esc(dn(r.fl[ses])||'-')}</i></div>`:''}<div>Pole:<i>${pole}</i></div>${isR?`<div>Driver of the Day:<i>${esc(dn(r.dr[ses])||'-')}</i></div>`:''}</div>`+
+chips(av.map(s=>[NM[s],'#/r/'+r.id+'/'+s,s==ses]))+
+`<div class=sc><table><tr><th>Pos<th>Number<th>Name<th>Team<th>Grid<th>Tyre</tr>${rows.map((x,i)=>{const c=tc(e,x.did),g=isR?(q.findIndex(y=>y.did==x.did)+1||'-'):i+1;
+return`<tr><td><b class="pb ${x.st?'dim':i==0?'p1':''}">${x.st||i+1}</b><td style="color:${c}">${esc(noOf(x.did))}<td>${esc(dn(x.did))}<td style="color:${c}"><i>${esc(tmO(e,x.did).name||'-')}</i><td>${g}<td>${esc((x.tyre||'')[0]||'')}`}).join('')}</table></div>`}
+
+function pStand(e,sub){const m=stats(e),ds=Object.keys(m).sort((a,b)=>m[b].p-m[a].p||m[b].w-m[a].w),B='#/e/'+e.id+'/stand/';
+const ch=chips([['Driver',B+'drv',sub!='tim'],['Tim',B+'tim',sub=='tim']]);
+if(sub=='tim'){const tp={};evT(e).forEach(t=>tp[t.id]=0);ds.forEach(d=>{const t=tmO(e,d);if(t.id)tp[t.id]+=m[d].p});
+const ts=evT(e).sort((a,b)=>tp[b.id]-tp[a.id]);return ch+`<div class=sc><table><tr><th>Pos<th>Tim<th>Poin</tr>${ts.map((t,i)=>`<tr><td><b class="pb ${i?'':'p1'}">${i+1}</b><td style="color:${t.col||'#9aa'}"><i>${esc(t.name)}</i><td><b>${tp[t.id]}</b>`).join('')}</table></div>`}
+return ch+(ds.length?`<div class=sc><table><tr><th>Pos<th>No<th>Driver<th>Tim<th>Poin<th>Win<th>Pole<th>Pod<th>FL<th>DotR</tr>${ds.map((d,i)=>{const s=m[d],c=tc(e,d);return`<tr><td><b class="pb ${i?'':'p1'}">${i+1}</b><td style="color:${c}">${esc(noOf(d))}<td>${esc(dn(d))}<td style="color:${c}"><i>${esc(tmO(e,d).name||'-')}</i><td><b>${s.p}</b><td>${s.w}<td>${s.po}<td>${s.pd}<td>${s.fl}<td>${s.dr}`}).join('')}</table></div>`:'<p class=m>Belum ada data.</p>')}
+
+function pTeams(e){const ts=evT(e);let h=`<p class=m>Kuota tim: <b>${ts.length}/${e.quota}</b></p>`+ts.map(t=>`<div class=f style="border-left:5px solid ${t.col||'#9aa'}"><b style="color:${t.col||'#9aa'}">${esc(t.name)}</b>${adm?` <button class=x onclick="delTm('${t.id}')">✕</button>`:''}<br>${e.soc&&t.soc?esc(t.soc)+'<br>':''}Principal: ${lk(t.tp,t.tpl)}<br>Owner: ${lk(t.ow,t.owl)}<br>${t.d.map((d,i)=>d?['Driver 1','Driver 2','Reserve 1','Reserve 2'][i]+': '+esc(dn(d)):'').filter(Boolean).join('<br>')}</div>`).join('');
+if(ts.length>=e.quota)return h+'<p class=m><b>Pendaftaran tim penuh.</b></p>';
+const L=(id,p)=>`<input id=${id} list=dl placeholder="${p} (ketik ID / nama)">`;
+return h+`<div class=f><b>Daftar Tim</b><input id=tn placeholder="Nama tim">${e.soc?'<input id=ts placeholder="Akun sosial tim">':''}<input id=tp placeholder="Nama Team Principal"><input id=tpl placeholder="Link sosmed Principal (https://...)"><input id=ow placeholder="Nama Team Owner"><input id=owl placeholder="Link sosmed Owner (https://...)">Warna tim <input id=tcl type=color value="#00d4ff">${L('d1','Driver 1')}${L('d2','Driver 2')}${L('r1','Reserve 1 (opsional)')}${L('r2','Reserve 2 (opsional)')}<datalist id=dl>${S.dr.map(d=>`<option value="${d.did} — ${esc(d.name)}">`).join('')}</datalist><button onclick=addTm()>Kirim Pendaftaran</button></div>`}
+const lk=(n,l)=>l?`<a style="color:inherit" href="${esc(l)}" target=_blank rel=noopener>${esc(n)}</a>`:esc(n);
+function addTm(){const e=S.ev.find(x=>x.id==curEv),v=i=>($('#'+i)||{value:''}).value.trim();
+const d=['d1','d2','r1','r2'].map(i=>{const m=v(i).match(/^\d{4}/);return m?m[0]:''});
+if(!v('tn')||!v('tp')||!v('ow'))return say('Isi nama tim, team principal, dan team owner.');
+if(!d[0]||!d[1])return say('Driver 1 dan Driver 2 wajib dipilih.');
+for(const l of['tpl','owl'])if(v(l)&&!/^https?:\/\//.test(v(l)))return say('Link harus diawali https://');
+const f=d.filter(Boolean);if(new Set(f).size<f.length)return say('Satu driver tidak boleh dipilih dua kali.');
+if(f.some(x=>!S.dr.some(y=>y.did==x)))return say('Ada driver yang belum punya lisensi.');
+if(f.some(x=>evD(e).includes(x)))return say('Ada driver yang sudah masuk tim lain.');
+if(evT(e).length>=e.quota)return say('Kuota penuh.');
+S.tm.push({id:uid(),ev:e.id,name:v('tn'),soc:v('ts'),tp:v('tp'),tpl:v('tpl'),ow:v('ow'),owl:v('owl'),col:v('tcl'),d});save();say('Tim terdaftar.');render()}
+const delTm=i=>{S.tm=S.tm.filter(t=>t.id!=i);save();render()};
+
+function pDr(){return`<div class=f><b>Daftar Lisensi Pembalap</b><input id=dnm placeholder="Nama (2–3 kata)"><input id=did inputmode=numeric maxlength=4 placeholder="DID (4 digit)"><input id=dno inputmode=numeric maxlength=2 placeholder="Nomor balap (opsional, 1–99)"><button onclick=addDr()>Daftar</button></div><div class=sc><table><tr><th>DID<th>No<th>Nama${adm?'<th>':''}</tr>${S.dr.map(d=>`<tr><td>${d.did}<td>${esc(d.no||'-')}<td>${esc(d.name)}${adm?`<td><button class=x onclick="delDr('${d.did}')">✕</button>`:''}`).join('')}</table></div>`}
+function addDr(){const n=$('#dnm').value.trim().replace(/\s+/g,' '),d=$('#did').value.trim(),o=$('#dno').value.trim(),w=n.split(' ').length;
+if(!n||w<2||w>3)return say('Nama harus 2 sampai 3 kata.');if(!/^\d{4}$/.test(d))return say('DID harus tepat 4 angka.');
+if(o&&!/^\d{1,2}$/.test(o))return say('Nomor balap 1–99.');if(S.dr.some(x=>x.did==d))return say('DID sudah dipakai.');
+S.dr.push({did:d,name:n,no:o});save();say('Berhasil terdaftar.');render()}
+const delDr=d=>{S.dr=S.dr.filter(x=>x.did!=d);save();render()};
+
+const rng=s=>s=='fe'?[5,10]:[5,20];
+function ldEd(r){const s=ed.ses,rows=get(r,s),[a,b]=rng(s);ed.rows=rows.map(x=>({...x}));ed.n=Math.min(b,Math.max(a,rows.length||a));ed.fl=r.fl[s]||'';ed.dr=r.dr[s]||''}
+function col(){ed.rows=[...Array(ed.n)].map((_,i)=>({did:($('#p'+i)||{}).value||'',tyre:($('#y'+i)||{}).value||'Soft',st:($('#s'+i)||{}).value||''}));if($('#fl')){ed.fl=$('#fl').value;ed.dr=$('#dd').value}}
+const chN=v=>{col();ed.n=+v;render()},chS=v=>{ed.ses=v;ldEd(S.rc.find(r=>r.id==ed.rid));render()},chR=v=>{ed.rid=v;ldEd(S.rc.find(r=>r.id==v));render()};
+function saveRes(){col();const r=S.rc.find(x=>x.id==ed.rid),s=ed.ses,ids=ed.rows.map(x=>x.did);
+if(ids.some(x=>!x))return say('Semua posisi harus diisi driver.');if(new Set(ids).size<ids.length)return say('Ada driver yang dipilih dua kali.');
+if(s[0]=='q')r.q[+s[1]]=ed.rows;else{r[s]=ed.rows;r.fl[s]=ed.fl;r.dr[s]=ed.dr}save();say('Hasil tersimpan. Grid & klasemen otomatis.')}
+function addEv(){const n=$('#en').value.trim(),q=+$('#eq').value;if(!n||q<1)return say('Isi nama event dan kuota tim.');
+const e={id:uid(),name:n,cls:$('#ec').value,quota:q,soc:$('#es').checked,col:$('#ecl').value};S.ev.push(e);curEv=e.id;save();say('Event dibuat.');render()}
+function addRc(){const e=S.ev.find(x=>x.id==curEv),c=$('#rcc').value.trim();if(!e||!c)return say('Pilih event dan isi nama sirkuit.');
+S.rc.push({id:uid(),ev:e.id,flag:$('#rf').value.trim(),country:$('#rn').value.trim(),circ:c,date:$('#rd').value,q:[[],[],[]],sp:[],fe:[],fl:{},dr:{}});save();say('Balapan ditambahkan.');render()}
+const delRc=i=>{if(confirm('Hapus balapan ini?')){S.rc=S.rc.filter(r=>r.id!=i);save();render()}};
+const login=()=>{if($('#ac').value===S.code){adm=true;render()}else say('Kode salah.')};
+const setCode=()=>{const c=$('#nc').value.trim();if(c.length<4)return say('Kode minimal 4 karakter.');S.code=c;save();say('Kode diganti.')};
+const togSoc=i=>{const e=S.ev.find(x=>x.id==i);e.soc=!e.soc;save();render()};
+const delEv=i=>{if(!confirm('Hapus event beserta tim dan hasilnya?'))return;S.ev=S.ev.filter(e=>e.id!=i);S.tm=S.tm.filter(t=>t.ev!=i);S.rc=S.rc.filter(r=>r.ev!=i);curEv=null;save();render()};
+
+function pAd(){if(!adm)return`<div class=f><b>Masuk Admin</b><input id=ac type=password placeholder="Kode akses"><button onclick=login()>Masuk</button><p class=m>Kode awal: ADMIN2026 (segera ganti di menu Kode).</p></div>`;
+const e=S.ev.find(x=>x.id==curEv)||S.ev[0];if(e)curEv=e.id;
+let h=`<div class=ch>${[['ev','Event'],['rc','Balapan'],['hs','Hasil'],['kd','Kode']].map(([k,n])=>`<a href="javascript:void 0" class="${at==k?'on':''}" onclick="at='${k}';say('');render()">${n}</a>`).join('')}</div>`;
+if(at=='kd')return h+`<div class=f><b>Ganti Kode Admin</b><input id=nc type=password placeholder="Kode baru"><button onclick=setCode()>Simpan</button></div>`;
+if(at=='ev')return h+`<div class=f><b>Buat Event Baru</b><input id=en placeholder="Nama event"><select id=ec>${opt(CL.map(c=>[c,c]))}</select><input id=eq type=number min=1 placeholder="Kuota tim">Warna event <input id=ecl type=color value="#00d4ff"><label><input id=es type=checkbox checked> Minta akun sosial tim</label><br><button onclick=addEv()>Buat Event</button></div>`+S.ev.map(x=>`<div class=f>${esc(x.name)} · ${x.cls}<br><button class=x onclick="togSoc('${x.id}')">Sosial tim: ${x.soc?'ON':'OFF'}</button><button class=x onclick="delEv('${x.id}')">Hapus</button></div>`).join('');
+if(!e)return h+'<p class=m>Buat event dulu.</p>';
+h+=`<div class=f>Event aktif<select onchange="curEv=this.value;ed.rid=null;render()">${opt(S.ev.map(x=>[x.id,x.name]),e.id)}</select></div>`;
+const rs=S.rc.filter(r=>r.ev==e.id);
+if(at=='rc')return h+`<div class=f><b>Tambah Balapan</b><input id=rd type=date><input id=rf placeholder="Kode negara (ID, JP, GB) atau emoji bendera"><input id=rn placeholder="Nama negara"><input id=rcc placeholder="Nama sirkuit"><button onclick=addRc()>Tambah</button></div>`+rs.map(r=>`<div class=f>${fl(r.flag)} ${esc(r.circ)} <button class=x onclick="delRc('${r.id}')">✕</button></div>`).join('');
+if(!rs.length)return h+'<p class=m>Tambah balapan dulu.</p>';
+if(!rs.some(r=>r.id==ed.rid)){ed.rid=rs[0].id;ldEd(rs[0])}
+const s=ed.ses,[a,b]=rng(s);
+h+=`<div class=f><b>Input Hasil</b><select onchange=chR(this.value)>${opt(rs.map((x,i)=>[x.id,'Round '+(i+1)+' – '+x.circ]),ed.rid)}</select><select onchange=chS(this.value)>${opt(Object.entries(NM),s)}</select><select onchange=chN(this.value)>${opt([...Array(b-a+1)].map((_,i)=>[a+i,(a+i)+' driver']),ed.n)}</select>`;
+for(let i=0;i<ed.n;i++){const x=ed.rows[i]||{};h+=`<div class=er><b>P${i+1}</b><select id=p${i}>${dopts(e,x.did)}</select><select id=y${i}>${opt(TY.map(t=>[t,t]),x.tyre)}</select><select id=s${i}>${opt([['','Finish'],['DSQ','DSQ'],['DNS','DNS'],['DNF','DNF']],x.st)}</select></div>`}
+if(s[0]!='q')h+=`Fastest Lap<select id=fl>${dopts(e,ed.fl)}</select>Driver of the Day<select id=dd>${dopts(e,ed.dr)}</select>`;
+return h+`<button onclick=saveRes()>Simpan Hasil</button>${evD(e).length<5?'<p class=m>Pilihan driver muncul setelah tim mendaftar.</p>':''}</div>`}
+
+function render(){const p=location.hash.slice(1).split('/'),k=p[1];let A='#d11',T='Competitions',bk='',b,tb,e,r;
+const rt=a=>[['🏁','Event','#/',0],['👑','Juara','#/overall',1],['🪪','Driver','#/drivers',2],['⚙️','Admin','#/admin',3]].map(x=>[...x.slice(0,3),x[3]==a]);
+const et=(e,a)=>[['🏁','Race','#/e/'+e.id+'/race'],['🏆','Klasemen','#/e/'+e.id+'/stand'],['👥','Tim','#/e/'+e.id+'/teams']].map((x,i)=>[...x,i==a]);
+if(k=='e'&&(e=S.ev.find(x=>x.id==p[2]))){curEv=e.id;A=e.col||'#00d4ff';T=e.name;bk='#/';const s=p[3]||'race';b=s=='stand'?pStand(e,p[4]):s=='teams'?pTeams(e):pRace(e);tb=et(e,['race','stand','teams'].indexOf(s))}
+else if(k=='r'&&(r=S.rc.find(x=>x.id==p[2]))&&(e=S.ev.find(x=>x.id==r.ev))){curEv=e.id;A=e.col||'#00d4ff';T=e.name;bk='#/e/'+e.id+'/race';b=pRes(e,r,p[3]);tb=et(e,0)}
+else if(k=='overall'){T='Juara Umum';b=pAll(p[2]);tb=rt(1)}
+else if(k=='drivers'){T='Lisensi Driver';b=pDr();tb=rt(2)}
+else if(k=='admin'){T='Admin';b=pAd();tb=rt(3)}
+else{b=pHome();tb=rt(0)}
+document.documentElement.style.setProperty('--a',A);
+$('#tb').innerHTML=(bk?`<a href="${bk}">←</a>`:'')+`<h2>${esc(T)}</h2>`;
+$('#bar').innerHTML=tb.map(([i,n,h,on])=>`<a href="${h}" class="${on?'on':''}"><b>${i}</b>${n}</a>`).join('');
+$('#app').innerHTML=b}
+window.onhashchange=()=>{say('');render();scrollTo(0,0)};save();render();
+</script></body></html>

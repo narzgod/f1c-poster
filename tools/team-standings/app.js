@@ -46,6 +46,13 @@ function img(src) {
 /* ---------- penyimpanan (IndexedDB) ---------- */
 const DB = 'tsm1';
 const idb = () => new Promise((ok, no) => { const r = indexedDB.open(DB, 1); r.onupgradeneeded = () => r.result.createObjectStore('k'); r.onsuccess = () => ok(r.result); r.onerror = no; });
+function impMM() {
+  let h; try { h = JSON.parse(localStorage.getItem('f1c-hub')); } catch (e) { }
+  if (!h || !h.drivers || !h.drivers.length) { alert('Data Motorsport belum ada. Isi dulu di Motorsport Manager (menu utama).'); return false; }
+  const L = v => String(v).trim().toLowerCase(), dk = c => { const n = parseInt(c.slice(1), 16), f = k => Math.round(((n >> k) & 255) * .55).toString(16).padStart(2, '0'); return '#' + f(16) + f(8) + f(0); };
+  S.teams = h.teams.map(t => { const o = S.teams.find(x => L(x.name) == L(t.name)); return Object.assign(o ? { ...o } : { id: uid(), name: t.name, logo: null, logoScale: 100, lx: 0, ns: 100 }, { c1: t.col, c2: dk(t.col), c3: contrast(t.col), c4: contrast(t.col), pts: t.pts, move: 0 }); });
+  return true;
+}
 let saveT;
 function save() { clearTimeout(saveT); saveT = setTimeout(async () => { try { const d = await idb(); d.transaction('k', 'readwrite').objectStore('k').put(S, 'state'); } catch (e) { } }, 400); }
 function normState(v) {
@@ -201,7 +208,7 @@ const TABS = { poster: 'Poster', teams: 'Tim', style: 'Baris', text: 'Teks', bg:
 function panelHTML() {
   if (tab === 'poster') return `<div class="card"><h3>Teks poster</h3>${txt('title', 'Judul (Enter = baris baru)', S.title, 1)}${txt('lead', 'Teks kecil kanan atas', S.lead)}${txt('event', 'Nama GP (di bawah teks kecil)', S.event)}${txt('nextLabel', 'Teks bawah', S.nextLabel)}${txt('nextCountry', 'Negara tujuan berikutnya', S.nextCountry)}</div>
   <div class="card"><h3>Bendera</h3>${flagSel('flagEvent', 'Bendera di kiri nama GP', S.flagEvent)}${flagSel('flagNext', 'Bendera di kiri negara tujuan', S.flagNext)}</div>
-  <div class="card"><h3>Cadangan data</h3><div class="row"><button id="exp">Simpan file data</button><button id="imp">Buka file data</button></div><input id="impf" type="file" accept=".json" hidden></div>`;
+  <div class="card"><h3>Cadangan data</h3><div class="row"><button id="exp">Simpan file data</button><button id="imp">Buka file data</button><button id="impMM">Ambil dari Motorsport</button></div><input id="impf" type="file" accept=".json" hidden></div>`;
   if (tab === 'teams') return `<div class="row"><button class="primary" id="addT">+ Tambah tim</button><button id="sort">Urutkan dari poin</button></div><p class="hint">Urutan kartu = urutan baris di poster (maksimal 12 tim).</p>` + S.teams.map((t, i) => `<div class="card"><div class="row">${thumb(t.logo)}<div>${txt(`teams.${i}.name`, `Posisi ${i + 1} · Nama tim`, t.name)}</div></div>
     <div class="row"><div>${num(`teams.${i}.pts`, 'Poin', t.pts, 0)}</div><div>${num(`teams.${i}.move`, 'Naik (+) / turun (−)', t.move)}</div></div>
     ${upl(`teams.${i}.logo`, 'Logo tim (PNG transparan paling bagus)')}${rng(`teams.${i}.logoScale`, 'Ukuran logo (%) · di atas 100 terpotong di kotak logo', t.logoScale, 20, 300)}${rng(`teams.${i}.lx`, 'Geser logo kiri–kanan', t.lx || 0, -150, 150)}${rng(`teams.${i}.ns`, 'Ukuran nama tim (%)', t.ns, 50, 140)}
@@ -246,6 +253,7 @@ document.addEventListener('click', async e => {
   else if (b.id === 'rmBg') S.bgImg = null;
   else if (b.id === 'exp') { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify({ ...S, fonts: [] })], { type: 'application/json' })); a.download = 'team-standings-data.json'; a.click(); return; }
   else if (b.id === 'imp') { document.getElementById('impf').click(); return; }
+  else if (b.id === 'impMM') { if (!impMM()) return; }
   else return;
   save(); render(); draw();
 });
