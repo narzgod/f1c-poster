@@ -60,7 +60,7 @@ const list=$("list"),viewer=$("viewer"),slot=$("slot");
 TOOLS.forEach(x=>{
   const b=document.createElement("button");
   b.className="card";
-  b.innerHTML=(x.img?'<div class="im" style="background-image:url('+x.img+')"></div>':'<div class="im" style="height:90px;display:flex;align-items:center;justify-content:center;font:700 30px/1 'MotoGP Display',Impact,sans-serif;letter-spacing:1px;font-style:italic">fRacing <span style="color:#e10600;margin-left:8px">LEGENDS</span></div>')+'<div class="tx"><h2>'+x.t+'</h2><p>'+x.d+'</p></div>';
+  b.innerHTML=(x.img?'<div class="im" style="background-image:url('+x.img+')"></div>':'<div class="im" style="height:90px;display:flex;align-items:center;justify-content:center;font:italic 700 30px/1 MotoGP Display,Impact,sans-serif;letter-spacing:1px">fRacing <span style="color:#e10600;margin-left:8px">LEGENDS</span></div>')+'<div class="tx"><h2>'+x.t+'</h2><p>'+x.d+'</p></div>';
   b.onclick=()=>{history.pushState({tool:x.id},"","#"+x.id);open(x.id)};
   list.appendChild(b);
 });
