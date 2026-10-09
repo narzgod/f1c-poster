@@ -6,7 +6,7 @@
 const dc=e=>e.col||'#e10600',stripe=(c,c2)=>`--a:${c};--c2:${c2||c};--stripe:linear-gradient(${c},${c2||c})`;
 const nameTag=(n,c,c2)=>`<span class=tn style="color:${c};--c2:${c2||'transparent'}">${esc(n)}</span>`;
 function pHome(){return'<h2 class=ph>Events</h2>'+(S.ev.length?S.ev.map(e=>`<a class=cd style="--a:${dc(e)}" href="#/e/${e.id}/race"><div class=ev><div class=nm>${esc(e.name)}</div><div class=mt><span>${e.cls} · ${evT(e).length}/${e.quota} teams</span><span class="st ${isOpen(e)&&!isFull(e)?'on':''}">${regTxt(e)}</span></div></div></a>`).join(''):'<p class=m>No events yet.</p>')}
-function pRace(e){const rs=S.rc.filter(r=>r.ev==e.id).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+function pRace(e){const rs=S.rc.filter(r=>r.ev==e.id);
 if(!rs.length)return'<p class=m>No races scheduled yet.</p>';
 return'<div class=sec>Race calendar</div>'+rs.map(r=>{const rows=r.fe.length?r.fe:r.sp,top=rows.filter(x=>!x.st).slice(0,3);
 return`<a class=cd href="#/r/${r.id}"><div class=rw><div class=fw>${flagImg(r.flag,64,44)}</div><div class=nm>${esc(r.circ)}<small>${esc(r.country)}${r.date?' · '+esc(r.date):''}</small></div><span class="chip ${rows.length?'on':''}">${rows.length?'Completed':'Upcoming'}</span></div>${top.length?`<div class=tp>${top.map((x,i)=>`<span><b class=pb>${i+1}</b><span style="color:${tc(e,x.did)}">${esc(sn(dn(x.did)))}</span></span>`).join('')}</div>`:''}</a>`}).join('')}
