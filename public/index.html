@@ -28,7 +28,14 @@ return h+tbl(['Pos',isTeam?'Team':'Driver'].concat(isTeam?[]:['Team']).concat(SC
 L.map((x,i)=>[`<b class="pb ${i?'':'p1'}">${i+1}</b>`,nameTag(x.n,x.c,x.c2)].concat(isTeam?[]:[nameTag(x.t,x.c,x.c2)]).concat(SC.map(([k])=>`<span class="${k==stat?'hl':''}">${fm(k,x.v[k])}</span>`))))}
 function pStand(e,sub,stat){const isT=sub=='tim',it=isT?tItems(e):dItems(e);let ch=null;
 if(e.done){const t=[...it].sort((a,b)=>b.v.t-a.v.t)[0];if(t&&t.v.t)ch=t}return rankView(it,'#/e/'+e.id+'/stand',sub,stat,isT,ch)}
-function pBoard(sub,stat){if(!S.ev.length)return'<p class=m>No events yet.</p>';const B=board();return rankView(sub=='tim'?B.t:B.d,'#/board',sub,stat,sub=='tim',null)}
+function pBoard(sub,stat){if(!S.ev.length)return'<p class=m>No events yet.</p>';const B=board();
+if(sub=='tim')return rankView(B.t,'#/board','tim',stat,true,null);
+const all=lpBoard(),cl=['all'].concat(LCL.map(x=>x[0].toLowerCase())),cur=cl.includes(stat)?stat:'all',L=cur=='all'?all:all.filter(x=>x.cls.toLowerCase()==cur),top=L[0];
+let h=chips([['Drivers','#/board/drv/'+cur,1],['Teams','#/board/tim/p',0]])+`<div class=ch>${cl.map(k=>`<a href="#/board/drv/${k}" class="${k==cur?'on':''}">${k=='all'?'All':k=='rookie'?'Rookie':k.length==1?'Class '+k.toUpperCase():'Pro'} <span class=m>${k=='all'?all.length:all.filter(x=>x.cls.toLowerCase()==k).length}</span></a>`).join('')}</div>`;
+h+=`<p class=m>Legends Points (LP) = Podiums x 10 + Wins x 20. Class comes from the Legends Score, which uses Races, Wins, Podiums, Poles, Sprint Wins and Titles, scaled by each event's category.</p>`;
+if(top)h+=`<div class=hero><small>${cur=='all'?'Legends Board leader':'Class leader'}</small><b>${esc(top.n)}</b><span>${top.lp} LP</span></div>`;
+if(!L.length)return h+'<p class=m>No drivers in this class yet.</p>';
+return h+tbl(['Pos','Driver','Team','Class','Starts','Wins','Podium','Pole','S.Wins','Titles','Win Rate','<span class=hl>LP</span>','Score'],L.map((x,i)=>[`<b class="pb ${i?'':'p1'}">${i+1}</b>`,nameTag(x.n,x.c,x.c2),nameTag(x.t,x.c,x.c2),'<b>'+x.cls+'</b>',x.v.r,x.v.w,x.v.pd,x.v.po,x.v.sw,x.v.t,x.wr+'%',`<span class=hl>${x.lp}</span>`,(Math.round(x.sc*10)/10)]))}
 function pTeams(e){const ts=evT(e),ok=isOpen(e)&&!isFull(e);
 return`<div class=hero><small>Team slots</small><b>${ts.length} / ${e.quota}</b><span>${regTxt(e)}</span></div>`+(ok?`<a class=cd href="daftar-tim.html?e=${e.id}"><div class=rw><div class=nm>Register a team<small>Open the team registration page</small></div><span>&rsaquo;</span></div></a>`:'')+
 (ts.length?'<div class=sec>Entry list</div>':'<p class=m>No teams registered yet.</p>')+ts.map(t=>`<div class=cd style="${stripe(t.col||'#8b93a7',t.col2)}"><div class=rw><div class=nm style="color:${t.col}">${esc(t.name)}<small>${e.soc&&t.soc?esc(t.soc)+' · ':''}Team Principal ${esc(t.tp)} · Team Owner ${esc(t.ow)}</small></div></div><div class=tp>${t.d.map((d,i)=>d?`<span class=m>${['D1','D2','R1','R2'][i]}</span><span>${(t.num||{})[d]?'#'+t.num[d]+' ':''}${esc(dn(d))}</span>`:'').join('')}</div></div>`).join('')}
