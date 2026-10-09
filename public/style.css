@@ -1,7 +1,13 @@
+/* ===== Fonts: 3 MotoGP fonts, 3 roles. To change a role, edit only the 3 lines in :root below ===== */
+@font-face{font-family:"MotoGP Display";src:url(/fonts/MotoGP_Display_Bold.ttf) format("truetype");font-weight:700;font-display:swap}
+@font-face{font-family:"MotoGP Text";src:url(/fonts/MotoGPText-Regular.ttf) format("truetype");font-weight:400;font-display:swap}
+@font-face{font-family:"MotoGP Text";src:url(/fonts/MotoGPText-Bold.ttf) format("truetype");font-weight:700;font-display:swap}
+:root{--f-title:"MotoGP Display",Impact,"Arial Black",sans-serif;--f-ui:"MotoGP Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--f-body:"MotoGP Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+/* title = Display Bold (brand, headings, names, numbers) | ui = Text Bold (labels, tabs, buttons, table heads) | body = Text Regular */
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--a:#e10600;--ac:#fff;--bg:#0c0d12;--s1:#14161d;--s2:#1b1e27;--ln:#262a36;--t:#f2f4f8;--m:#8b93a7;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--t);font:500 15px/1.45 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg);color:var(--t);font-size:15px;line-height:1.5;font-family:var(--f-body);font-weight:400;-webkit-font-smoothing:antialiased}
 a{color:inherit}
 #top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:#0c0d12f0;backdrop-filter:blur(8px);border-bottom:1px solid var(--ln)}
 .tb{display:flex;align-items:center;gap:12px;padding:10px 16px;max-width:640px;margin:auto;min-height:56px}
@@ -37,9 +43,9 @@ input[type=color]{width:56px;height:44px;border:1px solid var(--ln);border-radiu
 input:focus,select:focus{outline:2px solid var(--a);outline-offset:0}
 .f label.ck{display:flex;gap:10px;align-items:center;color:var(--t);font-size:14px}
 .pk{display:grid;gap:6px}
-button.bt{display:block;width:100%;margin-top:16px;padding:13px;border:0;border-radius:10px;background:var(--a);color:var(--ac);font:800 15px inherit;letter-spacing:.04em;cursor:pointer}
+button.bt{display:block;width:100%;margin-top:16px;padding:13px;border:0;border-radius:10px;background:var(--a);color:var(--ac);font-size:15px;letter-spacing:.04em;cursor:pointer}
 button.bt.s{background:var(--s2);color:var(--t);border:1px solid var(--ln);margin-top:8px}
-button.x{background:var(--s2);border:1px solid var(--ln);color:var(--t);border-radius:8px;padding:7px 12px;margin:8px 8px 0 0;font:600 13px inherit;cursor:pointer}
+button.x{background:var(--s2);border:1px solid var(--ln);color:var(--t);border-radius:8px;padding:7px 12px;margin:8px 8px 0 0;font-size:13px;cursor:pointer}
 #bar{position:fixed;bottom:0;left:0;right:0;background:#0c0d12f5;border-top:1px solid var(--ln);display:flex;padding-bottom:env(safe-area-inset-bottom,0px)}
 #bar a{flex:1;text-align:center;padding:16px 0 14px;color:var(--m);text-decoration:none;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 #bar a.on{color:var(--t);box-shadow:inset 0 3px 0 var(--a)}
@@ -49,3 +55,12 @@ button.x{background:var(--s2);border:1px solid var(--ln);color:var(--t);border-r
 .tn{border-bottom:2px solid var(--c2,transparent);padding-bottom:1px}
 .pk3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.pk3 small{display:block;margin-bottom:3px;font-size:11px}
 .hl{background:color-mix(in srgb,var(--a) 14%,transparent);font-weight:800;padding:2px 4px;border-radius:4px}
+
+/* font roles */
+.br,.ph,.rh h2,.hero b,.nm,.pb{font-family:var(--f-title);font-weight:700}
+.nm{font-size:16px;line-height:1.25}.ph{font-size:24px}.rh h2{font-size:20px}.hero b{font-size:18px}.pb{font-size:12px}.br b{font-family:var(--f-title)}
+.nm small,.ev .nm small{font-family:var(--f-body);font-weight:400}
+.tb h1,th,.chip,.sec,#bar a,.ch a,.ch button,button.bt,button.x,.f label,.hero small,.fx div,.mt .st.on,.hl,.tn,.f h3,.rh div div{font-family:var(--f-ui);font-weight:700}
+.f label.ck,.fx i,.mt{font-family:var(--f-body);font-weight:400}
+button,input,select{font-family:var(--f-body)}
+td,.tp,.m{font-family:var(--f-body)}

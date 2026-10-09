@@ -1,0 +1,11 @@
+{
+  "framework": null,
+  "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/owner", "destination": "/api/gate?p=" },
+    { "source": "/owner/:path*", "destination": "/api/gate?p=:path*" }
+  ],
+  "functions": {
+    "api/gate.js": { "includeFiles": "private/**", "maxDuration": 10 }
+  }
+}

@@ -4,11 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0707">
-<title>F1C Poster Tools</title>
+<title>Owner - F1C Tools</title>
+<meta name="robots" content="noindex,nofollow">
 <style>
-@font-face{font-family:"MotoGP Display";src:url(tools/race-result/MotoGP_Display_Bold.ttf);font-weight:700}
-@font-face{font-family:"MotoGP Text";src:url(tools/race-result/MotoGPText-Regular.ttf);font-weight:400}
-@font-face{font-family:"MotoGP Text";src:url(tools/race-result/MotoGPText-Bold.ttf);font-weight:700}
+@font-face{font-family:"MotoGP Display";src:url(/owner/tools/race-result/MotoGP_Display_Bold.ttf);font-weight:700}
+@font-face{font-family:"MotoGP Text";src:url(/owner/tools/race-result/MotoGPText-Regular.ttf);font-weight:400}
+@font-face{font-family:"MotoGP Text";src:url(/owner/tools/race-result/MotoGPText-Bold.ttf);font-weight:700}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
 body{background:#0b0707 radial-gradient(ellipse at top,#3a0b0b 0%,#0b0707 60%) fixed;color:#eee;font:15px/1.4 "MotoGP Text",system-ui,sans-serif}
@@ -37,9 +38,10 @@ body{background:#0b0707 radial-gradient(ellipse at top,#3a0b0b 0%,#0b0707 60%) f
 <body>
 <div id="hub">
   <div class="logo"><b>F1C <i>TOOLS</i></b></div>
-  <p class="sub">Kumpulan alat pembuat poster F1C. Pilih salah satu di bawah, semuanya dibuka di halaman ini.</p>
+  <p class="sub">Area pemilik. Pilih salah satu di bawah, semuanya dibuka di halaman ini.</p>
   <div id="list"></div>
   <p class="foot">Hasil poster tersimpan di perangkatmu sendiri.</p>
+  <p class="foot"><button id="lock" style="background:none;border:1px solid #3a2222;color:#b9aaaa;border-radius:8px;padding:8px 14px;font:inherit;cursor:pointer">Kunci &amp; keluar</button></p>
 </div>
 
 <div id="viewer">
@@ -49,13 +51,12 @@ body{background:#0b0707 radial-gradient(ellipse at top,#3a0b0b 0%,#0b0707 60%) f
 
 <script>
 const TOOLS=[
- {id:"legends",t:"fRacing Legends",d:"Events, race calendar, results, standings and the Legends Board. Data feeds the poster tools",img:"",src:"tools/motorsport/index.html"},
- {id:"race-result",  t:"Race Result",       d:"Poster hasil race: podium P1-P3 dan daftar P4-P10",           img:"assets/f1c.jpg",    src:"tools/race-result/index.html"},
- {id:"poster-studio",t:"Poster Studio",     d:"Studio poster lengkap: Winner, Pole, Fastest dan lainnya",     img:"assets/studio.jpg", src:"tools/poster-studio/index.html"},
- {id:"race-week",    t:"Race Week",         d:"Poster pengumuman Race Week dengan bendera dan nama GP",       img:"assets/race.jpg",   src:"tools/race-week/index.html"},
- {id:"driver-standings",t:"Driver Standings",d:"Klasemen pembalap dengan poin, naik-turun posisi, dan negara", img:"assets/drv.jpg",    src:"tools/driver-standings/index.html"},
- {id:"team-standings",t:"Team Standings",   d:"Klasemen tim konstruktor dengan warna dan logo tim",           img:"assets/team.jpg",   src:"tools/team-standings/index.html"},
- {id:"legends-manager",t:"fRacing Legends Manager",d:"Manager access: events, races, results, teams and licenses",img:"",src:"tools/motorsport/admin.html"}
+ {id:"race-result",  t:"Race Result",       d:"Poster hasil race: podium P1-P3 dan daftar P4-P10",           img:"/owner/assets/f1c.jpg",    src:"/owner/tools/race-result/index.html"},
+ {id:"poster-studio",t:"Poster Studio",     d:"Studio poster lengkap: Winner, Pole, Fastest dan lainnya",     img:"/owner/assets/studio.jpg", src:"/owner/tools/poster-studio/index.html"},
+ {id:"race-week",    t:"Race Week",         d:"Poster pengumuman Race Week dengan bendera dan nama GP",       img:"/owner/assets/race.jpg",   src:"/owner/tools/race-week/index.html"},
+ {id:"driver-standings",t:"Driver Standings",d:"Klasemen pembalap dengan poin, naik-turun posisi, dan negara", img:"/owner/assets/drv.jpg",    src:"/owner/tools/driver-standings/index.html"},
+ {id:"team-standings",t:"Team Standings",   d:"Klasemen tim konstruktor dengan warna dan logo tim",           img:"/owner/assets/team.jpg",   src:"/owner/tools/team-standings/index.html"},
+ {id:"legends-manager",t:"fRacing Legends Manager",d:"Kelola event, balapan, hasil, tim, ban, dan lisensi driver", img:"", src:"/owner/manager.html"}
 ];
 const $=id=>document.getElementById(id);
 const list=$("list"),viewer=$("viewer"),slot=$("slot");
@@ -82,6 +83,7 @@ function close(){
   viewer.classList.remove("on");
   slot.innerHTML="";slot.dataset.id="";
 }
+$("lock").onclick=()=>{fetch("/api/gate",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({logout:1})}).finally(()=>{location.href="/"})};
 $("back").onclick=()=>{ history.replaceState(null,"",location.pathname+location.search); close() };
 addEventListener("popstate",()=>{ const id=location.hash.slice(1); id?open(id):close() });
 if(location.hash)open(location.hash.slice(1));

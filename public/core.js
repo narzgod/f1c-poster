@@ -1,6 +1,6 @@
 /* fRacing Legends - shared data & helpers */
 let S;try{S=JSON.parse(localStorage.getItem('f1c-mm'))}catch(e){}
-S=S||{ev:[],dr:[],tm:[],rc:[],code:'ADMIN2026'};['ev','dr','tm','rc'].forEach(k=>S[k]=S[k]||[]);
+S=S||{ev:[],dr:[],tm:[],rc:[]};['ev','dr','tm','rc'].forEach(k=>S[k]=S[k]||[]);
 const save=()=>{try{localStorage.setItem('f1c-mm',JSON.stringify(S));localStorage.setItem('f1c-hub',JSON.stringify(hub()))}catch(e){}};
 const $=s=>document.querySelector(s),say=t=>{const m=$('#msg');if(m)m.textContent=t};
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
