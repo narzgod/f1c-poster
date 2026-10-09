@@ -20,6 +20,7 @@ body{background:#0b0707 radial-gradient(ellipse at top,#3a0b0b 0%,#0b0707 60%) f
 .card{display:block;width:100%;text-align:left;padding:0;margin:0 0 18px;background:linear-gradient(#1a0e0e,#120909);border:1px solid #3a2222;border-radius:16px;overflow:hidden;color:inherit;font:inherit;cursor:pointer}
 .card:active{transform:scale(.985);border-color:#e10600}
 .card .im{height:200px;background:#000 center/contain no-repeat;border-bottom:1px solid #2a1818}
+.card .im.ph{height:110px;display:flex;align-items:center;justify-content:center;font:italic 700 30px/1 MotoGP Display,Impact,sans-serif;letter-spacing:1px;background:#0c0d12}.card .im.ph span{color:#e10600;margin-left:8px}
 .card .tx{padding:14px 16px 18px}
 .card h2{margin:0 0 6px;font:700 20px/1.15 "MotoGP Display",Impact,sans-serif;text-transform:uppercase;letter-spacing:.5px}
 .card p{margin:0;color:#a99;font-size:14px}
@@ -48,19 +49,21 @@ body{background:#0b0707 radial-gradient(ellipse at top,#3a0b0b 0%,#0b0707 60%) f
 
 <script>
 const TOOLS=[
- {id:"legends",t:"fRacing Legends",d:"Event, jadwal, hasil, klasemen, dan Legends Board. Datanya bisa dipakai tool poster",img:"",src:"tools/motorsport/index.html"},
+ {id:"legends",t:"fRacing Legends",d:"Events, race calendar, results, standings and the Legends Board. Data feeds the poster tools",img:"",src:"tools/motorsport/index.html"},
  {id:"race-result",  t:"Race Result",       d:"Poster hasil race: podium P1-P3 dan daftar P4-P10",           img:"assets/f1c.jpg",    src:"tools/race-result/index.html"},
  {id:"poster-studio",t:"Poster Studio",     d:"Studio poster lengkap: Winner, Pole, Fastest dan lainnya",     img:"assets/studio.jpg", src:"tools/poster-studio/index.html"},
  {id:"race-week",    t:"Race Week",         d:"Poster pengumuman Race Week dengan bendera dan nama GP",       img:"assets/race.jpg",   src:"tools/race-week/index.html"},
  {id:"driver-standings",t:"Driver Standings",d:"Klasemen pembalap dengan poin, naik-turun posisi, dan negara", img:"assets/drv.jpg",    src:"tools/driver-standings/index.html"},
- {id:"team-standings",t:"Team Standings",   d:"Klasemen tim konstruktor dengan warna dan logo tim",           img:"assets/team.jpg",   src:"tools/team-standings/index.html"}
+ {id:"team-standings",t:"Team Standings",   d:"Klasemen tim konstruktor dengan warna dan logo tim",           img:"assets/team.jpg",   src:"tools/team-standings/index.html"},
+ {id:"legends-manager",t:"fRacing Legends Manager",d:"Manager access: events, races, results, teams and licenses",img:"",src:"tools/motorsport/admin.html"}
 ];
 const $=id=>document.getElementById(id);
 const list=$("list"),viewer=$("viewer"),slot=$("slot");
 TOOLS.forEach(x=>{
   const b=document.createElement("button");
   b.className="card";
-  b.innerHTML=(x.img?'<div class="im" style="background-image:url('+x.img+')"></div>':'<div class="im" style="height:90px;display:flex;align-items:center;justify-content:center;font:italic 700 30px/1 MotoGP Display,Impact,sans-serif;letter-spacing:1px">fRacing <span style="color:#e10600;margin-left:8px">LEGENDS</span></div>')+'<div class="tx"><h2>'+x.t+'</h2><p>'+x.d+'</p></div>';
+  const im=x.img?'<div class="im" style="background-image:url('+x.img+')"></div>':'<div class="im ph">fRacing <span>LEGENDS</span></div>';
+  b.innerHTML=im+'<div class="tx"><h2>'+x.t+'</h2><p>'+x.d+'</p></div>';
   b.onclick=()=>{history.pushState({tool:x.id},"","#"+x.id);open(x.id)};
   list.appendChild(b);
 });
@@ -79,7 +82,7 @@ function close(){
   viewer.classList.remove("on");
   slot.innerHTML="";slot.dataset.id="";
 }
-$("back").onclick=()=>{ if(location.hash){history.back()}else{close()} };
+$("back").onclick=()=>{ history.replaceState(null,"",location.pathname+location.search); close() };
 addEventListener("popstate",()=>{ const id=location.hash.slice(1); id?open(id):close() });
 if(location.hash)open(location.hash.slice(1));
 </script>

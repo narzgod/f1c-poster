@@ -1,12 +1,12 @@
-<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#0c0d12"><link rel="stylesheet" href="style.css"><title>Pendaftaran Tim - fRacing Legends</title></head><body>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#0c0d12"><link rel="stylesheet" href="style.css"><title>Team Registration - fRacing Legends</title></head><body>
 <div id="top"><div class="tb" id="tb"></div></div><div class="w"><div id="msg"></div><div id="app"></div></div><div id="bar"></div>
 <script src="core.js"></script>
 <script>
 let cur=new URLSearchParams(location.search).get('e');
 function view(){const op=S.ev.filter(e=>isOpen(e)&&!isFull(e));
-if(!op.length)return mount('Pendaftaran Tim','index.html#/daftar',null,'<p class=m>Belum ada event yang membuka pendaftaran tim, atau kuota sudah penuh.</p>');
+if(!op.length)return mount('Team Registration','index.html#/daftar',null,'<p class=m>No events are open for team registration right now, or all team slots are taken.</p>');
 let e=op.find(x=>x.id==cur)||op[0];cur=e.id;
-mount('Pendaftaran Tim','index.html#/daftar',null,`<div class=f><label>Event</label><select onchange="cur=this.value;view()">${opt(op.map(x=>[x.id,x.name+' · '+x.cls+' ('+evT(x).length+'/'+x.quota+')']),e.id)}</select></div>`+teamForm(e)+'<button class=bt onclick=send()>Kirim Pendaftaran</button>',e.col);pfAll(true)}
-function send(){if(saveTeam(false)){view();say('Pendaftaran tim berhasil dikirim.')}}
+mount('Team Registration','index.html#/daftar',null,`<div class=f><label>Event</label><select onchange="cur=this.value;view()">${opt(op.map(x=>[x.id,x.name+' · '+x.cls+' ('+evT(x).length+'/'+x.quota+')']),e.id)}</select></div>`+teamForm(e)+'<button class=bt onclick=send()>Submit Registration</button>',e.col);pfAll(true)}
+function send(){if(saveTeam(false)){view();say('Team registered successfully.')}}
 view();
 </script></body></html>

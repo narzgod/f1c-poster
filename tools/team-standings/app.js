@@ -48,9 +48,9 @@ const DB = 'tsm1';
 const idb = () => new Promise((ok, no) => { const r = indexedDB.open(DB, 1); r.onupgradeneeded = () => r.result.createObjectStore('k'); r.onsuccess = () => ok(r.result); r.onerror = no; });
 function impMM() {
   let h; try { h = JSON.parse(localStorage.getItem('f1c-hub')); } catch (e) { }
-  if (!h || !h.drivers || !h.drivers.length) { alert('Data fRacing Legends belum ada. Isi dulu di fRacing Legends (menu utama).'); return false; }
+  if (!h || !h.drivers || !h.drivers.length) { alert('No fRacing Legends data yet. Fill it in first from the main menu.'); return false; }
   const L = v => String(v).trim().toLowerCase(), dk = c => { const n = parseInt(c.slice(1), 16), f = k => Math.round(((n >> k) & 255) * .55).toString(16).padStart(2, '0'); return '#' + f(16) + f(8) + f(0); };
-  S.teams = h.teams.map(t => { const o = S.teams.find(x => L(x.name) == L(t.name)); return Object.assign(o ? { ...o } : { id: uid(), name: t.name, logo: null, logoScale: 100, lx: 0, ns: 100 }, { c1: t.col, c2: dk(t.col), c3: contrast(t.col), c4: contrast(t.col), pts: t.pts, move: 0 }); });
+  S.teams = h.teams.map(t => { const o = S.teams.find(x => L(x.name) == L(t.name)); return Object.assign(o ? { ...o } : { id: uid(), name: t.name, logo: null, logoScale: 100, lx: 0, ns: 100 }, { c1: t.col, c2: t.col2 || dk(t.col), c3: contrast(t.col), c4: contrast(t.col), pts: t.pts, move: 0 }); });
   return true;
 }
 let saveT;

@@ -1,41 +1,47 @@
-<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#0c0d12"><link rel="stylesheet" href="style.css"><title>fRacing Legends</title></head><body>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#0c0d12"><link rel="stylesheet" href="style.css"><title>fRacing Legends</title></head><body>
 <div id="top"><div class="tb" id="tb"></div></div><div class="w"><div id="msg"></div><div id="app"></div></div><div id="bar"></div>
 <script src="core.js"></script>
 <script>
-const dc=e=>e.col||'#e10600';
-function pHome(){return'<h2 class=ph>Event</h2>'+(S.ev.length?S.ev.map(e=>{const n=evT(e).length,ok=isOpen(e)&&!isFull(e);return`<a class=cd style="--a:${dc(e)}" href="#/e/${e.id}/race"><div class=rw><div class=nm>${esc(e.name)}<small>${e.cls} · ${n}/${e.quota} tim</small></div><span class="chip ${ok?'on':''}">${!isOpen(e)?'Pendaftaran ditutup':isFull(e)?'Kuota penuh':'Pendaftaran dibuka'}</span></div></a>`}).join(''):'<p class=m>Belum ada event.</p>')}
+const dc=e=>e.col||'#e10600',stripe=(c,c2)=>`--a:${c};--c2:${c2||c};--stripe:linear-gradient(${c},${c2||c})`;
+const nameTag=(n,c,c2)=>`<span class=tn style="color:${c};--c2:${c2||'transparent'}">${esc(n)}</span>`;
+function pHome(){return'<h2 class=ph>Events</h2>'+(S.ev.length?S.ev.map(e=>`<a class=cd style="--a:${dc(e)}" href="#/e/${e.id}/race"><div class=ev><div class=nm>${esc(e.name)}</div><div class=mt><span>${e.cls} · ${evT(e).length}/${e.quota} teams</span><span class="st ${isOpen(e)&&!isFull(e)?'on':''}">${regTxt(e)}</span></div></div></a>`).join(''):'<p class=m>No events yet.</p>')}
 function pRace(e){const rs=S.rc.filter(r=>r.ev==e.id).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-if(!rs.length)return'<p class=m>Belum ada jadwal balapan.</p>';
-return'<div class=sec>Jadwal balapan</div>'+rs.map(r=>{const rows=r.fe.length?r.fe:r.sp,top=rows.filter(x=>!x.st).slice(0,3);
-return`<a class=cd href="#/r/${r.id}"><div class=rw><div class=fb>${fl(r.flag)}</div><div class=nm>${esc(r.circ)}<small>${esc(r.country)}${r.date?' · '+esc(r.date):''}</small></div><span class="chip ${rows.length?'on':''}">${rows.length?'Selesai':'Mendatang'}</span></div>${top.length?`<div class=tp>${top.map((x,i)=>`<span><b class=pb>${i+1}</b><span style="color:${tc(e,x.did)}">${esc(sn(dn(x.did)))}</span></span>`).join('')}</div>`:''}</a>`}).join('')}
+if(!rs.length)return'<p class=m>No races scheduled yet.</p>';
+return'<div class=sec>Race calendar</div>'+rs.map(r=>{const rows=r.fe.length?r.fe:r.sp,top=rows.filter(x=>!x.st).slice(0,3);
+return`<a class=cd href="#/r/${r.id}"><div class=rw><div class=fb>${fl(r.flag)}</div><div class=nm>${esc(r.circ)}<small>${esc(r.country)}${r.date?' · '+esc(r.date):''}</small></div><span class="chip ${rows.length?'on':''}">${rows.length?'Completed':'Upcoming'}</span></div>${top.length?`<div class=tp>${top.map((x,i)=>`<span><b class=pb>${i+1}</b><span style="color:${tc(e,x.did)}">${esc(sn(dn(x.did)))}</span></span>`).join('')}</div>`:''}</a>`}).join('')}
 function pRes(e,r,ses){const av=Object.keys(NM).filter(s=>get(r,s).length),h0=`<div class=rh><div class=fb>${fl(r.flag)}</div><div><h2>${esc(r.circ)}</h2>`;
-if(!av.length)return h0+'</div></div><p class=m>Belum ada hasil.</p>';
+if(!av.length)return h0+'</div></div><p class=m>No results yet.</p>';
 if(!av.includes(ses))ses=av.includes('fe')?'fe':av.includes('sp')?'sp':av[av.length-1];
 const rows=get(r,ses),q=lastQ(r),isR=ses[0]!='q',pole=q[0]?esc(dn(q[0].did)):'-';
-return h0+`<div>${NM[ses]}</div></div></div><div class=fx>${isR?`<div>Fastest Lap<i>${esc(dn(r.fl[ses])||'-')}</i></div>`:''}<div>Pole<i>${pole}</i></div>${isR?`<div>Driver of the Day<i>${esc(dn(r.dr[ses])||'-')}</i></div>`:''}</div>`+
+return h0+`<div>${NM[ses]}</div></div></div><div class=fx>${isR?`<div>Fastest Lap<i>${esc(dn(r.fl[ses])||'-')}</i></div>`:''}<div>Pole Position<i>${pole}</i></div>${isR?`<div>Driver of the Race<i>${esc(dn(r.dr[ses])||'-')}</i></div>`:''}</div>`+
 chips(av.map(s=>[NM[s],'#/r/'+r.id+'/'+s,s==ses]))+
-tbl(['Pos','No','Name','Team','Grid','Tyre'],rows.map((x,i)=>{const c=tc(e,x.did),g=isR?(q.findIndex(y=>y.did==x.did)+1||'-'):i+1;
-return[`<b class="pb ${x.st?'dim':i==0?'p1':''}">${x.st||i+1}</b>`,`<span style="color:${c}">${esc(noOf(e,x.did))}</span>`,esc(dn(x.did)),`<span style="color:${c}">${esc(tmO(e,x.did).name||'-')}</span>`,g,esc((x.tyre||'')[0]||'')]}))}
-function pStand(e,sub){const m=stats(e),ds=Object.keys(m).sort((a,b)=>m[b].p-m[a].p||m[b].w-m[a].w),B='#/e/'+e.id+'/stand/';
-const ch=chips([['Driver',B+'drv',sub!='tim'],['Tim',B+'tim',sub=='tim']]);
-if(sub=='tim'){const tp={};evT(e).forEach(t=>tp[t.id]=0);ds.forEach(d=>{const t=tmO(e,d);if(t.id)tp[t.id]+=m[d].p});
-const ts=evT(e).sort((a,b)=>tp[b.id]-tp[a.id]);return ch+(ts.length?tbl(['Pos','Tim','Poin'],ts.map((t,i)=>[`<b class="pb ${i?'':'p1'}">${i+1}</b>`,`<span style="color:${t.col}">${esc(t.name)}</span>`,'<b>'+tp[t.id]+'</b>'])):'<p class=m>Belum ada tim.</p>')}
-return ch+(ds.length?tbl(['Pos','No','Driver','Tim','Poin','Win','Pole','Pod','FL','DotR'],ds.map((d,i)=>{const s=m[d],c=tc(e,d);return[`<b class="pb ${i?'':'p1'}">${i+1}</b>`,`<span style="color:${c}">${esc(noOf(e,d))}</span>`,esc(dn(d)),`<span style="color:${c}">${esc(tmO(e,d).name||'-')}</span>`,'<b>'+s.p+'</b>',s.w,s.po,s.pd,s.fl,s.dr]})):'<p class=m>Belum ada data.</p>')}
+tbl(['Pos','No','Driver','Team','Grid','Tyre'],rows.map((x,i)=>{const c=tc(e,x.did),g=isR?(q.findIndex(y=>y.did==x.did)+1||'-'):i+1;
+return[`<b class="pb ${x.st?'dim':i==0?'p1':''}">${x.st||i+1}</b>`,`<span style="color:${c}">${esc(noOf(e,x.did))}</span>`,esc(dn(x.did)),nameTag(tmO(e,x.did).name||'-',c,tmO(e,x.did).col2),g,esc((x.tyre||'')[0]||'')]}))}
+function rankView(items,base,scope,stat,isTeam,champ){stat=SC.some(x=>x[0]==stat)?stat:'p';const sd=SC.find(x=>x[0]==stat),B=base+'/'+scope+'/';
+const L=[...items].sort((a,b)=>b.v[stat]-a.v[stat]||b.v.p-a.v.p||b.v.w-a.v.w),top=L[0],fm=(k,v)=>k=='gp'&&v>0?'+'+v:v;
+let h=chips([['Drivers',base+'/drv/'+stat,!isTeam],['Teams',base+'/tim/'+stat,isTeam]])+`<div class=ch>${SC.map(([k,n])=>`<a href="${B}${k}" class="${k==stat?'on':''}">${n}</a>`).join('')}</div>`;
+if(champ)h+=`<div class=hero><small>${isTeam?'World Team Champions':'World Driver Champions'}</small><b>${esc(champ.n)}</b></div>`;
+h+=top&&(top.v[stat]||stat=='gp')?`<div class=hero><small>${sd[1]} leader</small><b>${esc(top.n)}</b><span>${fm(stat,top.v[stat])}</span></div>`:'';
+if(!L.length)return h+'<p class=m>No data yet.</p>';
+return h+tbl(['Pos',isTeam?'Team':'Driver'].concat(isTeam?[]:['Team']).concat(SC.map(x=>`<span class="${x[0]==stat?'hl':''}">${x[2]}</span>`)),
+L.map((x,i)=>[`<b class="pb ${i?'':'p1'}">${i+1}</b>`,nameTag(x.n,x.c,x.c2)].concat(isTeam?[]:[nameTag(x.t,x.c,x.c2)]).concat(SC.map(([k])=>`<span class="${k==stat?'hl':''}">${fm(k,x.v[k])}</span>`))))}
+function pStand(e,sub,stat){const isT=sub=='tim',it=isT?tItems(e):dItems(e);let ch=null;
+if(e.done){const t=[...it].sort((a,b)=>b.v.t-a.v.t)[0];if(t&&t.v.t)ch=t}return rankView(it,'#/e/'+e.id+'/stand',sub,stat,isT,ch)}
+function pBoard(sub,stat){if(!S.ev.length)return'<p class=m>No events yet.</p>';const B=board();return rankView(sub=='tim'?B.t:B.d,'#/board',sub,stat,sub=='tim',null)}
 function pTeams(e){const ts=evT(e),ok=isOpen(e)&&!isFull(e);
-return`<div class=hero><small>Kuota tim</small><b>${ts.length} / ${e.quota}</b><span>${!isOpen(e)?'Pendaftaran ditutup':isFull(e)?'Kuota penuh':'Pendaftaran dibuka'}</span></div>`+(ok?`<a class=cd href="daftar-tim.html?e=${e.id}"><div class=rw><div class=nm>Daftarkan tim<small>Buka halaman pendaftaran tim</small></div><span>&rsaquo;</span></div></a>`:'')+
-ts.map(t=>`<div class=cd style="--a:${t.col||'#8b93a7'}"><div class=rw><div class=nm style="color:${t.col}">${esc(t.name)}<small>${e.soc&&t.soc?esc(t.soc)+' · ':''}Principal ${lk(t.tp,t.tpl)} · Owner ${lk(t.ow,t.owl)}</small></div></div><div class=tp>${t.d.map((d,i)=>d?`<span class=m>${['D1','D2','R1','R2'][i]}</span><span>${(t.num||{})[d]?'#'+t.num[d]+' ':''}${esc(dn(d))}</span>`:'').join('')}</div></div>`).join('')}
-function pBoard(sub){if(!S.ev.length)return'<p class=m>Belum ada event.</p>';const A=allStats(),B='#/board/',ch=chips([['Driver',B+'drv',sub!='tim'],['Tim',B+'tim',sub=='tim']]);
-if(sub=='tim'){const ts=Object.values(A.t).sort((a,b)=>b.p-a.p);return ch+(ts.length?`<div class=hero><small>Tim terbaik</small><b>${esc(ts[0].name)}</b><span>${ts[0].p} poin</span></div>`+tbl(['Pos','Tim','Poin'],ts.map((t,i)=>[`<b class="pb ${i?'':'p1'}">${i+1}</b>`,`<span style="color:${t.col}">${esc(t.name)}</span>`,'<b>'+t.p+'</b>'])):'<p class=m>Belum ada data.</p>')}
-const ds=Object.keys(A.d).sort((a,b)=>A.d[b].p-A.d[a].p||A.d[b].w-A.d[a].w);
-return ch+(ds.length?`<div class=hero><small>Pembalap terbaik</small><b>${esc(dn(ds[0]))}</b><span>${A.d[ds[0]].p} poin · ${A.d[ds[0]].ev} event</span></div>`+tbl(['Pos','Driver','Tim','Poin','Win','Pole','Pod','FL','DotR','Event'],ds.map((d,i)=>{const x=A.d[d];return[`<b class="pb ${i?'':'p1'}">${i+1}</b>`,esc(dn(d)),`<span style="color:${x.col}">${esc(x.tm)}</span>`,'<b>'+x.p+'</b>',x.w,x.po,x.pd,x.fl,x.dr,x.ev]})):'<p class=m>Belum ada data.</p>')}
-function pDaftar(){const n=S.ev.filter(e=>isOpen(e)&&!isFull(e)).length;return`<p class=m>Pilih jenis pendaftaran. Setiap pendaftaran dibuka di halaman tersendiri.</p><a class=cd href="daftar-driver.html"><div class=rw><div class=nm>Lisensi Driver<small>Daftarkan nama dan DID 4 digit sebagai pembalap resmi</small></div><span>&rsaquo;</span></div></a><a class=cd href="daftar-tim.html"><div class=rw><div class=nm>Pendaftaran Tim<small>${n} event membuka pendaftaran tim</small></div><span>&rsaquo;</span></div></a>`}
+return`<div class=hero><small>Team slots</small><b>${ts.length} / ${e.quota}</b><span>${regTxt(e)}</span></div>`+(ok?`<a class=cd href="daftar-tim.html?e=${e.id}"><div class=rw><div class=nm>Register a team<small>Open the team registration page</small></div><span>&rsaquo;</span></div></a>`:'')+
+(ts.length?'<div class=sec>Entry list</div>':'<p class=m>No teams registered yet.</p>')+ts.map(t=>`<div class=cd style="${stripe(t.col||'#8b93a7',t.col2)}"><div class=rw><div class=nm style="color:${t.col}">${esc(t.name)}<small>${e.soc&&t.soc?esc(t.soc)+' · ':''}Team Principal ${esc(t.tp)} · Team Owner ${esc(t.ow)}</small></div></div><div class=tp>${t.d.map((d,i)=>d?`<span class=m>${['D1','D2','R1','R2'][i]}</span><span>${(t.num||{})[d]?'#'+t.num[d]+' ':''}${esc(dn(d))}</span>`:'').join('')}</div></div>`).join('')}
+function pTyres(e){const ds=evD(e);if(!ds.length)return'<p class=m>No drivers yet.</p>';
+const qt=e.qm=='each'?'Qualifying counts every session.':'Qualifying counts once per race.';
+return`<p class=m>Tyres left per driver (Q = Qualifying, R = Race). ${calN(e)} races in the calendar, 1 tyre per race. ${qt}</p>`+tbl(['Driver','Q Soft','Q Med','Q Hard','R Soft','R Med','R Hard'],ds.map(d=>{const u=tyUsed(e,d);return[nameTag(dn(d),tc(e,d),tmO(e,d).col2)].concat(['q','r'].flatMap(k=>TC.map(c=>{const t=tyTot(e,d,k,c),l=t-u[k][c];return`<span style="${l<=0?'color:var(--a);font-weight:800':''}">${l}<span class=m>/${t}</span></span>`})))}))}
+function pDaftar(){const n=S.ev.filter(e=>isOpen(e)&&!isFull(e)).length;return`<p class=m>Choose what you'd like to register.</p><a class=cd href="daftar-driver.html"><div class=rw><div class=nm>Driver License<small>Register your name, 4-digit DID and WhatsApp number</small></div><span>&rsaquo;</span></div></a><a class=cd href="daftar-tim.html"><div class=rw><div class=nm>Team Registration<small>${n} event${n==1?'':'s'} open for team entries</small></div><span>&rsaquo;</span></div></a>`}
 function render(){const p=location.hash.slice(1).split('/'),k=p[1];let A='#e10600',T='',bk='',b,tb,e,r;
-const rt=a=>[['Event','#/'],['Legends Board','#/board'],['Daftar','#/daftar']].map(([n,h],i)=>[n,h,i==a]);
-const et=(e,a)=>[['Race','#/e/'+e.id+'/race'],['Klasemen','#/e/'+e.id+'/stand'],['Tim','#/e/'+e.id+'/teams']].map(([n,h],i)=>[n,h,i==a]);
-if(k=='e'&&(e=S.ev.find(x=>x.id==p[2]))){A=dc(e);T=e.name;bk='#/';const s=p[3]||'race';b=s=='stand'?pStand(e,p[4]):s=='teams'?pTeams(e):pRace(e);tb=et(e,['race','stand','teams'].indexOf(s))}
+const rt=a=>[['Events','#/'],['Legends Board','#/board'],['Register','#/daftar']].map(([n,h],i)=>[n,h,i==a]);
+const et=(e,a)=>[['Races','#/e/'+e.id+'/race'],['Standings','#/e/'+e.id+'/stand'],['Teams','#/e/'+e.id+'/teams'],['Tyres','#/e/'+e.id+'/tyres']].map(([n,h],i)=>[n,h,i==a]);
+if(k=='e'&&(e=S.ev.find(x=>x.id==p[2]))){A=dc(e);T=e.name;bk='#/';const s=p[3]||'race';b=s=='stand'?pStand(e,p[4],p[5]):s=='teams'?pTeams(e):s=='tyres'?pTyres(e):pRace(e);tb=et(e,['race','stand','teams','tyres'].indexOf(s))}
 else if(k=='r'&&(r=S.rc.find(x=>x.id==p[2]))&&(e=S.ev.find(x=>x.id==r.ev))){A=dc(e);T=e.name;bk='#/e/'+e.id+'/race';b=pRes(e,r,p[3]);tb=et(e,0)}
-else if(k=='board'){T='Legends Board';b=pBoard(p[2]);tb=rt(1)}
-else if(k=='daftar'){T='Pendaftaran';b=pDaftar();tb=rt(2)}
+else if(k=='board'){T='Legends Board';b=pBoard(p[2],p[3]);tb=rt(1)}
+else if(k=='daftar'){T='Register';b=pDaftar();tb=rt(2)}
 else{b=pHome();tb=rt(0)}
 mount(T,bk,tb,b,A)}
 window.onhashchange=()=>{say('');render();scrollTo(0,0)};render();

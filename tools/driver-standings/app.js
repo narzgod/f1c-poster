@@ -51,9 +51,9 @@ const DB = 'dsm1';
 const idb = () => new Promise((ok, no) => { const r = indexedDB.open(DB, 1); r.onupgradeneeded = () => r.result.createObjectStore('k'); r.onsuccess = () => ok(r.result); r.onerror = no; });
 function impMM() {
   let h; try { h = JSON.parse(localStorage.getItem('f1c-hub')); } catch (e) { }
-  if (!h || !h.drivers || !h.drivers.length) { alert('Data fRacing Legends belum ada. Isi dulu di fRacing Legends (menu utama).'); return false; }
+  if (!h || !h.drivers || !h.drivers.length) { alert('No fRacing Legends data yet. Fill it in first from the main menu.'); return false; }
   const L = v => String(v).trim().toLowerCase(), dk = c => { const n = parseInt(c.slice(1), 16), f = k => Math.round(((n >> k) & 255) * .55).toString(16).padStart(2, '0'); return '#' + f(16) + f(8) + f(0); };
-  const teams = h.teams.map(t => { const o = S.teams.find(x => L(x.name) == L(t.name)); return Object.assign(o ? { ...o } : { id: uid(), name: t.name, logo: null, logoScale: 100 }, { c1: t.col, c2: dk(t.col), c3: contrast(t.col) }); });
+  const teams = h.teams.map(t => { const o = S.teams.find(x => L(x.name) == L(t.name)); return Object.assign(o ? { ...o } : { id: uid(), name: t.name, logo: null, logoScale: 100 }, { c1: t.col, c2: t.col2 || dk(t.col), c3: contrast(t.col) }); });
   const drivers = h.drivers.map(x => { const o = S.drivers.find(v => L(v.name) == L(x.name)), t = teams.find(v => L(v.name) == L(x.team)) || teams[0]; return { id: o ? o.id : uid(), name: x.name, photo: o ? o.photo : null, teamId: t.id }; });
   S.teams = teams; S.drivers = drivers; S.rows = h.drivers.map((x, i) => ({ driverId: drivers[i].id, points: x.pts, move: 0 }));
   S.rowCount = Math.min(+S.rowCount || 10, S.rows.length); return true;

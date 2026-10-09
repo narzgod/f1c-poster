@@ -160,12 +160,12 @@ if(a=='delL')LA().splice(i,1);
 if(a=='upL'&&i>0){const A=LA();[A[i-1],A[i]]=[A[i],A[i-1]]}
 if(a=='delI')setp(b.dataset.p,'');
 if(a=='impMM'){let h;try{h=JSON.parse(localStorage.getItem('f1c-hub'))}catch(e){}
-if(!h||!h.drivers||!h.drivers.length){toast('Data fRacing Legends belum ada. Isi dulu di fRacing Legends.');return}
-if(!confirm('Ganti daftar driver & tim dengan data fRacing Legends? Foto dan logo dengan nama sama tetap dipakai.'))return;
+if(!h||!h.drivers||!h.drivers.length){alert('No fRacing Legends data yet. Fill it in first from the main menu.');return}
+if(!confirm('Replace the driver & team list with fRacing Legends data? Photos and logos with the same name are kept.'))return;
 const L=v=>String(v).trim().toLowerCase(),dk=c=>{const n=parseInt(c.slice(1),16),f=k=>Math.round(((n>>k)&255)*.55).toString(16).padStart(2,'0');return'#'+f(16)+f(8)+f(0)};
-const teams=h.teams.map((t,i)=>{const o=S.teams.find(x=>L(x.name)==L(t.name));return{id:o?o.id:'m'+i,name:t.name,logo:o?o.logo:'',c:[t.col,dk(t.col),lum(t.col)=='#111'?'#111111':'#ffffff']}});
+const teams=h.teams.map((t,i)=>{const o=S.teams.find(x=>L(x.name)==L(t.name));return{id:o?o.id:'m'+i,name:t.name,logo:o?o.logo:'',c:[t.col,t.col2||dk(t.col),'#ffffff']}});
 const drivers=h.drivers.map((d,i)=>{const w=d.name.split(' '),o=S.drivers.find(x=>L((x.first+' '+x.last).trim())==L(d.name)),t=teams.find(x=>L(x.name)==L(d.team));return{id:'d'+i,last:w.pop(),first:w.join(' '),team:t?t.id:'',photo:o?o.photo:''}});
-S.teams=teams;S.drivers=drivers;S.res.forEach(r=>r.d='');S.res.forEach((r,k)=>{if(drivers[k])r.d=drivers[k].id});toast('Driver & tim diambil dari fRacing Legends. Urutan awal = klasemen umum.')}
+S.teams=teams;S.drivers=drivers;S.res.forEach((r,k)=>{r.d=drivers[k]?drivers[k].id:''});alert('Done. Driver order = Legends Board ranking.')}
 if(a=='rst'){if(!confirm('Hapus semua data dan kembali ke awal?'))return;localStorage.removeItem('f1c1');location.reload();return}
 rd();draw();save()});
 fix();S.cf.forEach(f=>regFont(f.n,f.d));document.fonts.onloadingdone=draw;rd();draw();
