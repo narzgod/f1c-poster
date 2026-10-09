@@ -33,14 +33,14 @@ module.exports = async (req, res) => {
       const f = d.filter(Boolean);
       if (new Set(f).size < f.length) return fail('A driver cannot be selected twice.');
       if (f.some(x => !s.dr.some(y => y.did == x))) return fail('Unknown driver selected.');
-      if (f.some(x => teams.some(y => y.d.includes(x)))) return fail('Some drivers are already in another team.');
+      if (f.some(x => teams.some(y => y.d.slice(0, 2).includes(x)))) return fail('Some drivers are already a regular driver in another team.');
       if (teams.some(y => y.name.toLowerCase() == name.toLowerCase())) return fail('Team name is already taken.');
-      const used = new Set(teams.flatMap(y => Object.values(y.num || {}))), num = {};
+      const usedBy = dd => new Set(teams.flatMap(y => Object.entries(y.num || {}).filter(([k]) => k != dd).map(([k, v]) => v))), mine = new Set(), num = {};
       for (const x of f) {
         const v = String(it.num && it.num[x] || '').trim();
         if (!/^\d{1,2}$/.test(v) || +v < 1) return fail('Race number (1-99) is required for every driver.');
-        if (used.has(String(+v))) return fail('Race number ' + (+v) + ' is already taken.');
-        used.add(String(+v)); num[x] = String(+v);
+        if (usedBy(x).has(String(+v)) || mine.has(String(+v))) return fail('Race number ' + (+v) + ' is already taken.');
+        mine.add(String(+v)); num[x] = String(+v);
       }
       s.tm.push({ id: uid(), ev: e.id, name, soc: e.soc ? t(it.soc, 80) : '', tp, tpw: w1, ow, oww: w2, col: c1, col2: c2, d, num, at: now });
       await L.putState(s); return res.status(200).json({ ok: true });
