@@ -45,5 +45,5 @@ else if(k=='board'){T='Legends Board';b=pBoard(p[2],p[3]);tb=rt(1)}
 else if(k=='daftar'){T='Register';b=pDaftar();tb=rt(2)}
 else{b=pHome();tb=rt(0)}
 mount(T,bk,tb,b,A)}
-window.onhashchange=()=>{say('');render();scrollTo(0,0)};render();
+window.onhashchange=()=>{say('');render();scrollTo(0,0)};render();READY.then(render);
 </script></body></html>

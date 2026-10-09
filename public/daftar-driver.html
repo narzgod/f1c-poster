@@ -3,5 +3,5 @@
 <script src="core.js"></script>
 <script>
 mount('Driver License','index.html#/daftar',null,`<p class=m>Register as an official driver. Your DID is your 4-digit license number, used to find you when a team picks its drivers.</p><div class=f><label>Full name (2 to 3 words)</label><input id=dnm autocomplete=off><label>DID (4 digits)</label><input id=did inputmode=numeric maxlength=4 autocomplete=off><label>WhatsApp number</label><input id=dwa inputmode=tel placeholder="0812-3456-7890 or +62 812 3456 7890" autocomplete=off><button class=bt onclick=go()>Register License</button></div>`);
-function go(){const r=addLic($('#dnm').value,$('#did').value,$('#dwa').value);if(r)return say(r);['#dnm','#did','#dwa'].forEach(i=>$(i).value='');say('License registered. You can now be picked when a team registers.')}
+async function go(){const r=await addLicP($('#dnm').value,$('#did').value,$('#dwa').value);if(r)return say(r);['#dnm','#did','#dwa'].forEach(i=>$(i).value='');say('License registered. You can now be picked when a team registers.')}
 </script></body></html>

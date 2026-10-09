@@ -1,7 +1,15 @@
 /* fRacing Legends - shared data & helpers */
 let S;try{S=JSON.parse(localStorage.getItem('f1c-mm'))}catch(e){}
 S=S||{ev:[],dr:[],tm:[],rc:[]};['ev','dr','tm','rc'].forEach(k=>S[k]=S[k]||[]);
-const save=()=>{try{localStorage.setItem('f1c-mm',JSON.stringify(S));localStorage.setItem('f1c-hub',JSON.stringify(hub()))}catch(e){}};
+const ADMIN=location.pathname.indexOf('/owner')==0;let SYNC='local',BASE=0,pushT;
+const loc=()=>{try{localStorage.setItem('f1c-mm',JSON.stringify(S));localStorage.setItem('f1c-hub',JSON.stringify(hub()))}catch(e){}};
+const save=()=>{loc();if(ADMIN&&SYNC=='cloud'){clearTimeout(pushT);pushT=setTimeout(doPush,300)}};
+async function doPush(){try{const r=await fetch('/api/state',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({s:S,base:BASE})});
+if(r.status==401)return say('Session expired. Open the owner menu again and enter the code.');if(!r.ok)return say('Could not save to the shared database. Try again.');
+const j=await r.json();BASE=j.ts;if(j.merged){S=j.s;loc();if(typeof render=='function')render()}}catch(e){say('No connection. Changes are saved only in this browser for now.')}}
+async function load(){try{const r=await fetch('/api/state',{cache:'no-store',credentials:'same-origin'});if(!r.ok)return;const j=await r.json();SYNC='cloud';BASE=j.ts;
+if(j.s){S=j.s;['ev','dr','tm','rc'].forEach(k=>S[k]=S[k]||[]);loc()}else if(ADMIN&&(S.ev.length||S.dr.length||S.tm.length||S.rc.length))await doPush()}catch(e){}}
+const READY=load();
 const $=s=>document.querySelector(s),say=t=>{const m=$('#msg');if(m)m.textContent=t};
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const CL=['ROOKIE CLASS','CLASS D','CLASS C','CLASS B','CLASS A','CLASS PRO'],TY=['Soft','Medium','Hard','Inter','Wet'];
@@ -51,9 +59,13 @@ if(e.done){const top=Object.values(o).sort((a,b)=>b.v.p-a.v.p||b.v.w-a.v.w)[0];i
 function board(){const d={},t={};S.ev.forEach(e=>{dItems(e).forEach(x=>{const a=d[x.k]=d[x.k]||{n:x.n,t:'-',c:x.c,c2:x.c2,v:Z(),ev:0};addAll(a.v,x.v);a.ev++;if(x.t!='-'){a.t=x.t;a.c=x.c;a.c2=x.c2}});
 tItems(e).forEach(x=>{const k=x.n.toLowerCase(),a=t[k]=t[k]||{n:x.n,t:'',c:x.c,c2:x.c2,v:Z()};addAll(a.v,x.v);a.c=x.c;a.c2=x.c2})});return{d:Object.values(d),t:Object.values(t)}}
 function hub(){const B=board(),by=(a,b)=>b.v.p-a.v.p;return{t:Date.now(),teams:B.t.sort(by).map(x=>({name:x.n,col:x.c,col2:x.c2,pts:x.v.p})),drivers:B.d.sort(by).map(x=>({name:x.n,team:x.t,col:x.c,col2:x.c2,pts:x.v.p}))}}
-function addLic(n,d,w){n=n.trim().replace(/\s+/g,' ');d=d.trim();const k=n.split(' ').length,wa=normWA(w);
-if(!n||k<2||k>3)return'Name must be 2 to 3 words.';if(!/^\d{4}$/.test(d))return'DID must be exactly 4 digits.';if(S.dr.some(x=>x.did==d))return'This DID is already taken.';
-if(!wa)return'Enter a valid WhatsApp number (e.g. 0812-3456-7890 or +62 812 3456 7890).';S.dr.push({did:d,name:n,wa});save();return''}
+function chkLic(n,d,w){n=n.trim().replace(/\s+/g,' ');d=d.trim();const k=n.split(' ').length,wa=normWA(w);
+if(!n||k<2||k>3)return{err:'Name must be 2 to 3 words.'};if(!/^\d{4}$/.test(d))return{err:'DID must be exactly 4 digits.'};if(S.dr.some(x=>x.did==d))return{err:'This DID is already taken.'};
+if(!wa)return{err:'Enter a valid WhatsApp number (e.g. 0812-3456-7890 or +62 812 3456 7890).'};return{item:{did:d,name:n,wa}}}
+function addLic(n,d,w){const c=chkLic(n,d,w);if(c.err)return c.err;S.dr.push(c.item);save();return''}
+async function sendReg(kind,item){try{const r=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,item})});const j=await r.json().catch(()=>({}));if(r.ok)return'';return j.err||'Could not send. Try again.'}catch(e){return'No connection. Try again.'}}
+async function addLicP(n,d,w){await READY;const c=chkLic(n,d,w);if(c.err)return c.err;
+if(SYNC!='cloud'){S.dr.push(c.item);save();return''}const e=await sendReg('driver',c.item);await load();return e}
 let TF=null;
 function teamForm(e,t){TF={e,t:t||null,prev:{}};const x=t||{},V=k=>esc(x[k]||'');
 return`<div class=f><label>Team name</label><input id=tn value="${V('name')}">${e.soc?`<label>Team social account</label><input id=ts value="${V('soc')}">`:''}<label>Team Principal name</label><input id=tp value="${V('tp')}"><label>Team Principal WhatsApp</label><input id=tpw inputmode=tel placeholder="0812-3456-7890" value="${V('tpw')}"><label>Team Owner name</label><input id=ow value="${V('ow')}"><label>Team Owner WhatsApp</label><input id=oww inputmode=tel placeholder="0812-3456-7890" value="${V('oww')}">${colorField('tcl','Main Color',x.col||'#e10600')}${colorField('tcl2','Second Color',x.col2||'#ffffff')}${SL.map(([id,l])=>`<label>${l}${id[0]=='r'?' (optional)':''}</label><div class=pk><input id=q_${id} placeholder="Search name or DID" oninput=pfAll()><select id=${id} onchange=pfAll()></select><input id=n_${id} inputmode=numeric maxlength=2 placeholder="Race number (1-99) - required" hidden></div>`).join('')}</div>`}
@@ -78,6 +90,7 @@ for(const [id,l] of SL){const dd=$('#'+id).value,val=$('#n_'+id).value.trim();if
 if(!/^\d{1,2}$/.test(val)||+val<1)return er('Race number (1-99) is required for '+l+'.');if(used.has(String(+val)))return er('Race number '+(+val)+' is already taken.');used.add(String(+val));num[dd]=String(+val)}
 if(!admin){if(!isOpen(e))return er('Registration is closed.');if(!old&&isFull(e))return er('Team slots are full.')}
 const o={id:old?old.id:uid(),ev:e.id,name:v('tn'),soc:v('ts'),tp:v('tp'),tpw:w1,ow:v('ow'),oww:w2,col:c1,col2:c2,d,num};
+if(!admin&&!old&&SYNC=='cloud')return sendReg('team',o).then(async m=>{await load();if(m){say(m);return false}return true});
 if(old)Object.assign(old,o);else S.tm.push(o);save();return true}
 
 /* tyre stock: 1 tyre per calendar race, set separately for Qualifying (q) and Race (r) */
