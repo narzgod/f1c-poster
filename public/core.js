@@ -13,7 +13,10 @@ const contrast=h=>{const n=parseInt((h||'#000').slice(1),16);return((n>>16)*.3+(
 const dn=d=>(S.dr.find(x=>x.did==d)||{}).name||'';
 const nmLabel=d=>S.dr.filter(x=>x.name.toLowerCase()==d.name.toLowerCase()).length>1?d.name+' ('+d.did+')':d.name;
 const sn=n=>{const p=(n||'').split(' ');return p.length>1?p[0]+' '+p[p.length-1][0]+'.':n};
-const fl=c=>/^[a-z]{2}$/i.test(c||'')?String.fromCodePoint(...c.toUpperCase().split('').map(x=>127397+x.charCodeAt(0))):esc(c);
+const fcode=c=>{c=String(c||'').trim();const m=[...c].map(ch=>ch.codePointAt(0)).filter(x=>x>=127462&&x<=127487);return m.length==2?m.map(x=>String.fromCharCode(x-127397)).join('').toLowerCase():c.toLowerCase()};
+/* flat flag image, scaled to the country's own width:height ratio and fitted inside a mw x mh box */
+const flagImg=(c,mw,mh)=>{mw=mw||64;mh=mh||44;const k=fcode(c),f=typeof FLAGS!=='undefined'&&FLAGS[k];if(!f)return`<span class=fb0>${esc(c||'')}</span>`;let h=mh,w=h*f[0];if(w>mw){w=mw;h=w/f[0]}return`<img class=flag src="/flags/${k}.svg" width="${Math.round(w)}" height="${Math.round(h)}" alt="${esc(f[1])}">`};
+const fl=c=>flagImg(c,32,22);
 const evT=e=>S.tm.filter(t=>t.ev==e.id),evD=e=>[...new Set(evT(e).flatMap(t=>t.d.filter(Boolean)))];
 const isOpen=e=>e.reg!==false,isFull=e=>evT(e).length>=e.quota;
 const regTxt=e=>!isOpen(e)?'Registration Closed':isFull(e)?'Registration Full':'Registration Open';
