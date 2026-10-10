@@ -6,7 +6,7 @@
 <script>
 const dc=e=>e.col||'#e10600',stripe=(c,c2)=>`--a:${c};--c2:${c2||c};--stripe:linear-gradient(${c},${c2||c})`;
 const nameTag=(n,c,c2)=>`<span class=tn style="color:${c};--c2:${c2||'transparent'}">${esc(n)}</span>`;
-function pHome(){return'<h2 class=ph>Events</h2>'+(S.ev.length?S.ev.map(e=>`<a class=cd style="--a:${dc(e)}" href="#/e/${e.id}/race"><div class=ev><div class=nm>${esc(e.name)}</div><div class=mt><span>${e.cls} · ${evT(e).length}/${e.quota} teams</span><span class="st ${isOpen(e)&&!isFull(e)?'on':''}">${regTxt(e)}</span></div></div></a>`).join(''):'<p class=m>No events yet.</p>')}
+function pHome(){return'<h2 class=ph>Events</h2>'+(S.ev.length?S.ev.map(e=>`<a class=cd style="--a:${dc(e)}" href="#/e/${e.id}/race"><div class=ev>${e.sp?`<div class=sp>${esc(e.sp)}</div>`:''}<div class=nm>${esc(e.name)}</div><div class=mt><span>${e.cls} · ${evT(e).length}/${e.quota} teams</span><span class="st ${isOpen(e)&&!isFull(e)?'on':''}">${regTxt(e)}</span></div></div></a>`).join(''):'<p class=m>No events yet.</p>')}
 function pRace(e){const rs=S.rc.filter(r=>r.ev==e.id);
 if(!rs.length)return'<p class=m>No races scheduled yet.</p>';
 return'<div class=sec>Race calendar</div>'+rs.map(r=>{const rows=r.fe.length?r.fe:r.sp,top=rows.filter(x=>!x.st).slice(0,3);
@@ -52,8 +52,8 @@ function pDaftar(){const n=S.ev.filter(e=>isOpen(e)&&!isFull(e)).length;return`<
 function render(){const p=location.hash.slice(1).split('/'),k=p[1];let A='#e10600',T='',bk='',b,tb,e,r;
 const rt=a=>[['Events','#/'],['Legends Board','#/board'],['Register','#/daftar']].map(([n,h],i)=>[n,h,i==a]);
 const et=(e,a)=>[['Races','#/e/'+e.id+'/race'],['Standings','#/e/'+e.id+'/stand'],['Teams','#/e/'+e.id+'/teams'],['Tyres','#/e/'+e.id+'/tyres']].map(([n,h],i)=>[n,h,i==a]);
-if(k=='e'&&(e=S.ev.find(x=>x.id==p[2]))){A=dc(e);T=e.name;bk='#/';const s=p[3]||'race';b=s=='stand'?pStand(e,p[4],p[5]):s=='teams'?pTeams(e):s=='tyres'?pTyres(e):pRace(e);tb=et(e,['race','stand','teams','tyres'].indexOf(s))}
-else if(k=='r'&&(r=S.rc.find(x=>x.id==p[2]))&&(e=S.ev.find(x=>x.id==r.ev))){A=dc(e);T=e.name;bk='#/e/'+e.id+'/race';b=pRes(e,r,p[3]);tb=et(e,0)}
+if(k=='e'&&(e=S.ev.find(x=>x.id==p[2]))){A=dc(e);T=e.name;TSP=e.sp||'';bk='#/';const s=p[3]||'race';b=s=='stand'?pStand(e,p[4],p[5]):s=='teams'?pTeams(e):s=='tyres'?pTyres(e):pRace(e);tb=et(e,['race','stand','teams','tyres'].indexOf(s))}
+else if(k=='r'&&(r=S.rc.find(x=>x.id==p[2]))&&(e=S.ev.find(x=>x.id==r.ev))){A=dc(e);T=e.name;TSP=e.sp||'';bk='#/e/'+e.id+'/race';b=pRes(e,r,p[3]);tb=et(e,0)}
 else if(k=='board'){T='Legends Board';b=pBoard(p[2],p[3]);tb=rt(1)}
 else if(k=='daftar'){T='Register';b=pDaftar();tb=rt(2)}
 else{b=pHome();tb=rt(0)}

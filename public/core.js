@@ -1,7 +1,7 @@
 /* fRacing Legends - shared data & helpers */
 let S;try{S=JSON.parse(localStorage.getItem('f1c-mm'))}catch(e){}
 S=S||{ev:[],dr:[],tm:[],rc:[]};['ev','dr','tm','rc'].forEach(k=>S[k]=S[k]||[]);
-const ADMIN=location.pathname.indexOf('/owner')==0;let SYNC='local',BASE=0,pushT;
+let TSP='';const ADMIN=location.pathname.indexOf('/owner')==0;let SYNC='local',BASE=0,pushT;
 const loc=()=>{try{localStorage.setItem('f1c-mm',JSON.stringify(S));localStorage.setItem('f1c-hub',JSON.stringify(hub()))}catch(e){}};
 const save=()=>{loc();if(ADMIN&&SYNC=='cloud'){clearTimeout(pushT);pushT=setTimeout(doPush,300)}};
 async function doPush(){try{const r=await fetch('/api/state',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({s:S,base:BASE})});
@@ -45,8 +45,8 @@ const colorField=(id,label,val)=>`<label>${label}</label><div class=cp><input id
 const colorVal=id=>hx(($('#'+id+'_h')||{value:''}).value);
 const normWA=v=>{let s=(v||'').trim();const pl=s.startsWith('+');s=s.replace(/\D/g,'');if(!s)return'';if(pl)s='+'+s;else if(s.startsWith('00'))s='+'+s.slice(2);else if(s.startsWith('0'))s='+62'+s.slice(1);else if(s.startsWith('62'))s='+'+s;else s='+62'+s;const n=s.replace(/\D/g,'').length;return n>=8&&n<=15?s:''};
 const waLink=n=>n?`<a href="https://wa.me/${n.replace(/\D/g,'')}" target=_blank rel=noopener style="text-decoration:underline">${esc(n)}</a>`:'-';
-function mount(T,bk,tabs,body,A){A=A||'#e10600';const r=document.documentElement.style;r.setProperty('--a',A);r.setProperty('--ac',contrast(A));
-$('#tb').innerHTML=(bk?`<a class=bk href="${bk}">&larr;</a>`:'')+(T?`<h1>${esc(T)}</h1>`:'<div class=br>fRacing <b>LEGENDS</b></div>');
+function mount(T,bk,tabs,body,A){const sp=TSP;TSP='';try{EXP.sp=sp}catch(_){}A=A||'#e10600';const r=document.documentElement.style;r.setProperty('--a',A);r.setProperty('--ac',contrast(A));
+$('#tb').innerHTML=(bk?`<a class=bk href="${bk}">&larr;</a>`:'')+(T?`<h1>${sp?`<small class=hsp>${esc(sp)}</small>`:''}${esc(T)}</h1>`:'<div class=br>fRacing <b>LEGENDS</b></div>');
 $('#bar').innerHTML=tabs?tabs.map(([n,h,on])=>`<a href="${h}" class="${on?'on':''}">${n}</a>`).join(''):'';$('#bar').style.display=tabs?'flex':'none';$('#app').innerHTML=body;requestAnimationFrame(fitTables)}
 /* zoom wide tables out so everything fits on screen (data-fit = smallest allowed zoom) */
 function fitTables(){document.querySelectorAll('.sc[data-fit]').forEach(sc=>{const t=sc.querySelector('table');if(!t)return;t.style.zoom='';t.style.width='';sc.classList.add('fit');t.style.width='max-content';const nat=t.offsetWidth,av=sc.clientWidth,mn=parseFloat(sc.dataset.fit)||.3;let z=av>0&&nat>0?Math.min(1,av/nat):1;if(z<mn)z=mn;if(z<1){t.style.zoom=z}else{t.style.zoom='';t.style.width=''}})}
