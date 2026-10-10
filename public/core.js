@@ -86,8 +86,8 @@ const CATOLD={F1:'Open Wheel',F3:'Open Wheel',GT3:'GT Racing',GT4:'GT Racing','M
 const catM=e=>{const v=parseFloat(((S.cm||{})[e.cls]));return v>=0?v:1};
 const LCL=[['Rookie',100],['D',200],['C',250],['B',300],['A',450],['Pro',1e9]],lcOf=sc=>LCL.find(x=>sc<=x[1])[0];
 const baseSc=v=>((v.r/100)*.05+(v.w/10)*.2+(v.pd/15)*.15+(v.po/80)*.07+(v.sw/50)*.03+(v.t/5)*.14)*1000;
-function lpBoard(){const d={};S.ev.forEach(e=>{const m=catM(e);dItems(e).forEach(x=>{const a=d[x.k]=d[x.k]||{k:x.k,n:x.n,t:'-',c:x.c,c2:x.c2,tx:x.tx,tt:x.tt,v:Z(),sc:0};addAll(a.v,x.v);a.sc+=baseSc(x.v)*m;if(x.t!='-'){a.t=x.t;a.c=x.c;a.c2=x.c2;a.tx=x.tx;a.tt=x.tt}})});
-return Object.values(d).map(a=>(a.lp=a.v.pd*10+a.v.w*20,a.cls=lcOf(a.sc),a.wr=a.v.r>0?Math.round(a.v.w/a.v.r*10000)/100:0,a)).sort((a,b)=>b.lp-a.lp||b.sc-a.sc||b.v.w-a.v.w||a.n.localeCompare(b.n))}
+function lpBoard(){const d={};S.ev.forEach(e=>{const m=catM(e);dItems(e).forEach(x=>{const a=d[x.k]=d[x.k]||{k:x.k,n:x.n,t:'-',c:x.c,c2:x.c2,tx:x.tx,tt:x.tt,v:Z(),sc:0,lpm:0};addAll(a.v,x.v);a.sc+=baseSc(x.v);a.lpm+=(x.v.pd*10+x.v.w*20)*m;if(x.t!='-'){a.t=x.t;a.c=x.c;a.c2=x.c2;a.tx=x.tx;a.tt=x.tt}})});
+return Object.values(d).map(a=>(a.lp=Math.round(a.lpm*10)/10,a.cls=lcOf(a.sc),a.wr=a.v.r>0?Math.round(a.v.w/a.v.r*10000)/100:0,a)).sort((a,b)=>b.lp-a.lp||b.sc-a.sc||b.v.w-a.v.w||a.n.localeCompare(b.n))}
 function board(){const d={},t={};S.ev.forEach(e=>{dItems(e).forEach(x=>{const a=d[x.k]=d[x.k]||{n:x.n,t:'-',c:x.c,c2:x.c2,tx:x.tx,tt:x.tt,v:Z(),ev:0};addAll(a.v,x.v);a.ev++;if(x.t!='-'){a.t=x.t;a.c=x.c;a.c2=x.c2;a.tx=x.tx;a.tt=x.tt}});
 tItems(e).forEach(x=>{const k=x.n.toLowerCase(),a=t[k]=t[k]||{n:x.n,t:'',c:x.c,c2:x.c2,tx:x.tx,v:Z()};addAll(a.v,x.v);a.c=x.c;a.c2=x.c2;a.tx=x.tx})});return{d:Object.values(d),t:Object.values(t)}}
 function hub(){const B=board(),by=(a,b)=>b.v.p-a.v.p;return{t:Date.now(),teams:B.t.sort(by).map(x=>({name:x.n,col:x.c,col2:x.c2,pts:x.v.p})),drivers:B.d.sort(by).map(x=>({name:x.n,team:x.t,col:x.c,col2:x.c2,pts:x.v.p}))}}

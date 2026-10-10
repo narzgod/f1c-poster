@@ -40,7 +40,7 @@ function pBoard(sub,stat){if(!S.ev.length)return'<p class=m>No events yet.</p>';
 if(sub=='tim')return rankView(B.t,'#/board','tim',stat,true,null);
 const all=lpBoard(),cl=['all'].concat(LCL.map(x=>x[0].toLowerCase())),cur=cl.includes(stat)?stat:'all',L=cur=='all'?all:all.filter(x=>x.cls.toLowerCase()==cur),top=L[0];
 let h=chips([['Drivers','#/board/drv/'+cur,1],['Teams','#/board/tim/p',0]])+`<div class=ch>${cl.map(k=>`<a href="#/board/drv/${k}" class="${k==cur?'on':''}">${k=='all'?'All':k=='rookie'?'Rookie':k.length==1?'Class '+k.toUpperCase():'Pro'} <span class=m>${k=='all'?all.length:all.filter(x=>x.cls.toLowerCase()==k).length}</span></a>`).join('')}</div>`;
-h+=`<p class=m>Legends Points (LP) = Podiums x 10 + Wins x 20. Class comes from the Legends Score, which uses Races, Wins, Podiums, Poles, Sprint Wins and Titles, scaled by each event's class.</p>`;
+h+=`<p class=m>Legends Points (LP) = Podiums x 10 + Wins x 20 in each event, multiplied by that event's class multiplier. Class comes from the Legends Score, which uses Races, Wins, Podiums, Poles, Sprint Wins and Titles.</p>`;
 if(top)h+=`<div class=hero><small>${cur=='all'?'Legends Board leader':'Class leader'}</small><b>${esc(top.n)}</b><span>${top.lp} LP</span></div>`;
 EXP={title:'Legends Board',sub:cur=='all'?'All classes':(cur=='rookie'?'Rookie':cur.length==1?'Class '+cur.toUpperCase():'Pro'),note:[],rank:{step:10,total:L.length}};
 if(!L.length)return h+'<p class=m>No drivers in this class yet.</p>';
