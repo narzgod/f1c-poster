@@ -20,17 +20,24 @@ async function saveImg(){
     document.body.appendChild(host);
     const root=host.querySelector('#xroot');
     await (document.fonts&&document.fonts.ready);
+    await Promise.all([...tb.querySelectorAll('img')].map(im=>im.decode?im.decode().catch(()=>{}):0));
     const W=Math.ceil(Math.max(root.scrollWidth,t.offsetWidth+64,420)),H=Math.ceil(root.getBoundingClientRect().height);
     root.style.width=W+'px';
     const H2=Math.ceil(root.getBoundingClientRect().height);
     const xml=new XMLSerializer().serializeToString(root);
     document.body.removeChild(host);
     const extra=`.xh{margin-bottom:18px}.xh .br{font-family:var(--f-title);font-size:16px;letter-spacing:.04em}.xt{font-family:var(--f-title);font-size:26px;margin-top:6px;line-height:1.2}.xs{font-family:var(--f-ui);font-weight:700;color:#e10600;letter-spacing:.08em;text-transform:uppercase;font-size:13px;margin-top:2px}.xnn{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.xn{background:#14161d;border:1px solid #262a36;border-radius:10px;padding:8px 12px;font-size:14px}.xn small{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8b93a7;font-weight:700}.xf{margin-top:14px;color:#8b93a7;font-size:12px;text-align:right}`;
-    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H2}"><foreignObject x="0" y="0" width="${W}" height="${H2}"><style><![CDATA[${css}\n${extra}]]></style>${xml}</foreignObject></svg>`;
+    const HB=H2+Math.max(300,Math.ceil(H2*.35));/* spare room: the final height is cropped to the real content below */
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${HB}"><foreignObject x="0" y="0" width="${W}" height="${HB}"><style><![CDATA[${css}\n${extra}]]></style>${xml}</foreignObject></svg>`;
     const img=new Image();
     await new Promise((ok,no)=>{img.onload=ok;img.onerror=no;img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)});
-    const k=2,cv=document.createElement('canvas');cv.width=W*k;cv.height=H2*k;const cx=cv.getContext('2d');cx.fillStyle='#0c0d12';cx.fillRect(0,0,cv.width,cv.height);cx.scale(k,k);cx.drawImage(img,0,0,W,H2);
-    const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',.93));
+    let k=2;while(W*k*HB*k>36e6&&k>1)k-=.25;
+    const cv=document.createElement('canvas');cv.width=Math.round(W*k);cv.height=Math.round(HB*k);const cx=cv.getContext('2d',{willReadFrequently:true});cx.fillStyle='#0c0d12';cx.fillRect(0,0,cv.width,cv.height);cx.scale(k,k);cx.drawImage(img,0,0,W,HB);
+    /* find the last row that has anything drawn on it, so the image is exactly as tall as the content (never cut, no empty space) */
+    let last=0;{const ch=120;for(let y=cv.height;y>0&&!last;y-=ch){const y0=Math.max(0,y-ch),d=cx.getImageData(0,y0,cv.width,y-y0).data;for(let r=y-y0-1;r>=0&&!last;r--){const o=r*cv.width*4;for(let x=0;x<cv.width*4;x+=4){if(Math.abs(d[o+x]-12)>10||Math.abs(d[o+x+1]-13)>10||Math.abs(d[o+x+2]-18)>10){last=y0+r+1;break}}}}}
+    const outH=last?Math.min(cv.height,last+Math.round(22*k)):Math.min(cv.height,Math.round(H2*k));
+    const out=document.createElement('canvas');out.width=cv.width;out.height=outH;const ox=out.getContext('2d');ox.fillStyle='#0c0d12';ox.fillRect(0,0,out.width,out.height);ox.drawImage(cv,0,0);
+    const blob=await new Promise(r=>out.toBlob(r,'image/jpeg',.93));
     const a=document.createElement('a'),nm=((EXP.title||'table')+' '+(EXP.sub||'')).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
     a.href=URL.createObjectURL(blob);a.download=nm+'.jpg';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
     say('Image saved as '+nm+'.jpg');
