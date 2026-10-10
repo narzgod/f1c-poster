@@ -86,4 +86,4 @@ td,.tp,.m{font-family:var(--f-body)}
 a.wa{display:inline-block;background:#1f8f4a;color:#fff;text-decoration:none;border-radius:8px;padding:7px 12px;font-size:13px;font-family:var(--f-ui);font-weight:700}
 details.f summary{cursor:pointer;list-style:none}details.f summary::-webkit-details-marker{display:none}
 
-.tt th,.tt td{text-align:center}.tt th:first-child,.tt td:first-child{text-align:center;vertical-align:middle}.tt td:first-child .tn{font-size:17px;line-height:1.3}.tt .tgl{border-left:2px solid var(--b,#888)}.tt th[colspan]{font-size:1.05em;letter-spacing:.04em}
+.tt th,.tt td{text-align:center}.tt th:first-child,.tt td:first-child{text-align:center;vertical-align:middle}.tt td:first-child .tn{font-size:19px;line-height:1.3}.tt .tgl{border-left:2px solid var(--b,#888)}.tt th[colspan]{font-size:1.05em;letter-spacing:.04em}
