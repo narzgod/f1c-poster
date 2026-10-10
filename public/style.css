@@ -73,7 +73,7 @@ td,.tp,.m{font-family:var(--f-body)}
 
 /* fit-to-screen tables, tyre marks, pole lap time, type-ahead chips */
 .sc.fit{overflow-x:auto}.sc.fit th,.sc.fit td{padding:9px 7px}
-.td{display:inline-grid;place-items:center;border-radius:50%;background:var(--tc);color:#fff;font-family:var(--f-ui);font-weight:700;line-height:1;border:1px solid rgba(255,255,255,.4);text-shadow:0 0 2px #000,0 0 3px #000,0 0 1px #000,0 0 4px #000;vertical-align:middle}
+.td{display:inline-grid;place-items:center;border-radius:50%;background:var(--tc);color:#fff;font-family:var(--f-ui);font-weight:700;line-height:1;border:1px solid rgba(255,255,255,.4);text-shadow:none;vertical-align:middle}
 .tf{display:inline-flex;align-items:center;gap:5px;vertical-align:middle}.tl{flex:none;display:block}
 .lt{color:var(--a);font-family:var(--f-ui);font-weight:700;margin-left:6px;white-space:nowrap}
 .sg{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0}.sg:empty{display:none}

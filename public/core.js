@@ -48,7 +48,7 @@ function fitTables(){document.querySelectorAll('.sc[data-fit]').forEach(sc=>{con
 addEventListener('resize',fitTables);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitTables);
 /* tyre colours: Soft red, Medium yellow, Hard white, Inter green, Wet blue */
 const TYC={Soft:'#e10600',Medium:'#ffd100',Hard:'#f2f2f2',Inter:'#1fb84a',Wet:'#1f78ff'};
-const tyDot=(t,sz)=>{if(!t)return'';sz=sz||22;return`<span class=td style="--tc:${TYC[t]||'#888'};width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.56)}px">${esc(t[0])}</span>`};
+const tyDot=(t,sz)=>{if(!t)return'';sz=sz||22;return`<span class=td style="--tc:${TYC[t]||'#888'};width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.56)}px;color:${t=='Hard'?'#111':'#fff'}">${esc(t[0])}</span>`};
 const tyLogo=(t,sz)=>{sz=sz||16;const c=TYC[t]||'#888';return`<svg class=tl width="${sz}" height="${sz}" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#0e0f14" stroke="#3a3f4f" stroke-width="1"/><circle cx="12" cy="12" r="7.6" fill="none" stroke="${c}" stroke-width="3.4"/><circle cx="12" cy="12" r="3.6" fill="#2b2e3a"/></svg>`};
 const tyFull=t=>`<span class=tf>${tyLogo(t)}${esc(t)}</span>`;
 /* in-page tab links replace history so Back never "undoes" a tab tap */
