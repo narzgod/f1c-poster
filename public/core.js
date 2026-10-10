@@ -28,7 +28,7 @@ const fl=c=>flagImg(c,32,22);
 const evT=e=>S.tm.filter(t=>t.ev==e.id),evD=e=>[...new Set(evT(e).flatMap(t=>t.d.filter(Boolean)))];
 const isOpen=e=>e.reg!==false,isFull=e=>evT(e).length>=e.quota;
 const regTxt=e=>!isOpen(e)?'Registration Closed':isFull(e)?'Registration Full':'Registration Open';
-const tmO=(e,d)=>evT(e).find(t=>t.d.slice(0,2).includes(d))||evT(e).find(t=>t.d.includes(d))||{},tc=(e,d)=>tmO(e,d).col||'#8b93a7',noOf=(e,d)=>(tmO(e,d).num||{})[d]||'-';
+const tmO=(e,d)=>evT(e).find(t=>t.d.slice(0,2).includes(d))||evT(e).find(t=>t.d.includes(d))||{},txT=t=>(t&&(t.tx||t.col))||'#8b93a7',txD=(t,d)=>((t&&t.dtx)||{})[d]||txT(t),tc=(e,d)=>txD(tmO(e,d),d),noOf=(e,d)=>(tmO(e,d).num||{})[d]||'-';
 const get=(r,s)=>s[0]=='q'?r.q[+s[1]]:r[s];
 const lastQi=r=>{for(let i=2;i>=0;i--)if(r.q[i]&&r.q[i].length)return i;return -1};/* lap time format: m.ss,hh (example 1.23,45). Older saved times like 1:23.456 are converted on display. */
 const fmtLT=v=>{v=String(v||'').trim();if(/^(\d{1,2}\.)?\d{2},\d{2}$/.test(v))return v;const m=v.match(/^(?:(\d{1,2}):)?(\d{1,2})\.(\d{1,3})$/);if(!m)return v;let t=Math.round((+m[1]||0)*6000+(+m[2])*100+Math.round(+('0.'+m[3])*100));const mi=Math.floor(t/6000),se=Math.floor(t%6000/100),hh=t%100,p2=n=>String(n).padStart(2,'0');return(m[1]!=null?mi+'.':'')+(m[1]!=null?p2(se):se<10?p2(se):se)+','+p2(hh)};
@@ -72,11 +72,11 @@ if(e.done&&!only){const t=Object.keys(m).sort((a,b)=>m[b].p-m[a].p||m[b].w-m[a].
 /* team of a driver in one round (set per round in Manager), else the registered team */
 /* team of a driver in one session of one round: session setting, else round setting, else the registered team */
 const tmR=(e,d,r,ses)=>{const id=(r&&ses&&r.ts&&r.ts[ses]&&r.ts[ses][d])||(r&&r.tm&&r.tm[d]),t=id&&evT(e).find(x=>x.id==id);return t||tmO(e,d)};
-const tcR=(e,d,r,ses)=>tmR(e,d,r,ses).col||'#8b93a7',noR=(e,d,r,ses)=>(tmR(e,d,r,ses).num||{})[d]||noOf(e,d);
+const tcR=(e,d,r,ses)=>txD(tmR(e,d,r,ses),d),noR=(e,d,r,ses)=>(tmR(e,d,r,ses).num||{})[d]||noOf(e,d);
 /* latest team a driver raced for (shown in driver standings) */
 const drvTm=(e,d)=>{const rs=S.rc.filter(r=>r.ev==e.id);for(let i=rs.length-1;i>=0;i--){const r=rs[i];for(const k of ['fe','sp','q2','q1','q0']){if((k[0]=='q'?r.q[+k[1]]:r[k]).some(x=>x.did==d))return tmR(e,d,r,k)}}return tmO(e,d)};
-function dItems(e){const m=stats(e);return Object.keys(m).map(d=>{const t=drvTm(e,d);return{k:d,n:dn(d),t:t.name||'-',c:t.col||'#8b93a7',c2:t.col2||'',v:m[d]}})}
-function tItems(e){const m=stats(e),o={};evT(e).forEach(t=>o[t.id]={n:t.name,t:'',c:t.col||'#8b93a7',c2:t.col2||'',v:Z()});
+function dItems(e){const m=stats(e);return Object.keys(m).map(d=>{const t=drvTm(e,d);return{k:d,n:dn(d),t:t.name||'-',c:t.col||'#8b93a7',c2:t.col2||'',tx:txD(t,d),tt:txT(t),v:m[d]}})}
+function tItems(e){const m=stats(e),o={};evT(e).forEach(t=>o[t.id]={n:t.name,t:'',c:t.col||'#8b93a7',c2:t.col2||'',tx:txT(t),v:Z()});
 S.rc.filter(r=>r.ev==e.id).forEach(r=>{['q'+lastQi(r),'sp','fe'].forEach(k=>{const mr=stats(e,[r],k);Object.keys(mr).forEach(d=>{const t=tmR(e,d,r,k);if(t.id&&o[t.id])addAll(o[t.id].v,mr[d],1)})})});
 if(e.done){const top=Object.values(o).sort((a,b)=>b.v.p-a.v.p||b.v.w-a.v.w)[0];if(top&&top.v.p>0)top.v.t=1}return Object.values(o)}
 /* Legends Point (LP) system */
@@ -85,10 +85,10 @@ const CATOLD={F1:'Open Wheel',F3:'Open Wheel',GT3:'GT Racing',GT4:'GT Racing','M
 const catM=e=>{const v=parseFloat(((S.cm||{})[catOf(e)]));return v>=0?v:1};
 const LCL=[['Rookie',100],['D',200],['C',250],['B',300],['A',450],['Pro',1e9]],lcOf=sc=>LCL.find(x=>sc<=x[1])[0];
 const baseSc=v=>((v.r/100)*.05+(v.w/10)*.2+(v.pd/15)*.15+(v.po/80)*.07+(v.sw/50)*.03+(v.t/5)*.14)*1000;
-function lpBoard(){const d={};S.ev.forEach(e=>{const m=catM(e);dItems(e).forEach(x=>{const a=d[x.k]=d[x.k]||{k:x.k,n:x.n,t:'-',c:x.c,c2:x.c2,v:Z(),sc:0};addAll(a.v,x.v);a.sc+=baseSc(x.v)*m;if(x.t!='-'){a.t=x.t;a.c=x.c;a.c2=x.c2}})});
+function lpBoard(){const d={};S.ev.forEach(e=>{const m=catM(e);dItems(e).forEach(x=>{const a=d[x.k]=d[x.k]||{k:x.k,n:x.n,t:'-',c:x.c,c2:x.c2,tx:x.tx,tt:x.tt,v:Z(),sc:0};addAll(a.v,x.v);a.sc+=baseSc(x.v)*m;if(x.t!='-'){a.t=x.t;a.c=x.c;a.c2=x.c2;a.tx=x.tx;a.tt=x.tt}})});
 return Object.values(d).map(a=>(a.lp=a.v.pd*10+a.v.w*20,a.cls=lcOf(a.sc),a.wr=a.v.r>0?Math.round(a.v.w/a.v.r*10000)/100:0,a)).sort((a,b)=>b.lp-a.lp||b.sc-a.sc||b.v.w-a.v.w||a.n.localeCompare(b.n))}
-function board(){const d={},t={};S.ev.forEach(e=>{dItems(e).forEach(x=>{const a=d[x.k]=d[x.k]||{n:x.n,t:'-',c:x.c,c2:x.c2,v:Z(),ev:0};addAll(a.v,x.v);a.ev++;if(x.t!='-'){a.t=x.t;a.c=x.c;a.c2=x.c2}});
-tItems(e).forEach(x=>{const k=x.n.toLowerCase(),a=t[k]=t[k]||{n:x.n,t:'',c:x.c,c2:x.c2,v:Z()};addAll(a.v,x.v);a.c=x.c;a.c2=x.c2})});return{d:Object.values(d),t:Object.values(t)}}
+function board(){const d={},t={};S.ev.forEach(e=>{dItems(e).forEach(x=>{const a=d[x.k]=d[x.k]||{n:x.n,t:'-',c:x.c,c2:x.c2,tx:x.tx,tt:x.tt,v:Z(),ev:0};addAll(a.v,x.v);a.ev++;if(x.t!='-'){a.t=x.t;a.c=x.c;a.c2=x.c2;a.tx=x.tx;a.tt=x.tt}});
+tItems(e).forEach(x=>{const k=x.n.toLowerCase(),a=t[k]=t[k]||{n:x.n,t:'',c:x.c,c2:x.c2,tx:x.tx,v:Z()};addAll(a.v,x.v);a.c=x.c;a.c2=x.c2;a.tx=x.tx})});return{d:Object.values(d),t:Object.values(t)}}
 function hub(){const B=board(),by=(a,b)=>b.v.p-a.v.p;return{t:Date.now(),teams:B.t.sort(by).map(x=>({name:x.n,col:x.c,col2:x.c2,pts:x.v.p})),drivers:B.d.sort(by).map(x=>({name:x.n,team:x.t,col:x.c,col2:x.c2,pts:x.v.p}))}}
 function chkLic(n,d,w){n=n.trim().replace(/\s+/g,' ');d=d.trim();const k=n.split(' ').length,wa=normWA(w);
 if(!n||k<2||k>3)return{err:'Name must be 2 to 3 words.'};if(!/^\d{4}$/.test(d))return{err:'DID must be exactly 4 digits.'};if(S.dr.some(x=>x.did==d))return{err:'This DID is already taken.'};
@@ -98,8 +98,8 @@ async function sendReg(kind,item){try{const r=await fetch('/api/register',{metho
 async function addLicP(n,d,w){await READY;const c=chkLic(n,d,w);if(c.err)return c.err;
 if(SYNC!='cloud'){S.dr.push(c.item);save();return''}const e=await sendReg('driver',c.item);await load();return e}
 let TF=null;
-function teamForm(e,t){TF={e,t:t||null,prev:{}};const x=t||{},V=k=>esc(x[k]||'');
-return`<div class=f><label>Team name</label><input id=tn value="${V('name')}">${e.soc?`<label>Team social account</label><input id=ts value="${V('soc')}">`:''}<label>Team Principal name</label><input id=tp value="${V('tp')}"><label>Team Principal WhatsApp</label><input id=tpw inputmode=tel placeholder="0812-3456-7890" value="${V('tpw')}"><label>Team Owner name</label><input id=ow value="${V('ow')}"><label>Team Owner WhatsApp</label><input id=oww inputmode=tel placeholder="0812-3456-7890" value="${V('oww')}">${colorField('tcl','Main Color',x.col||'#e10600')}${colorField('tcl2','Second Color',x.col2||'#ffffff')}${SL.map(([id,l])=>`<label>${l}${id[0]=='r'?' (optional)':''}</label><div class=pk><input id=q_${id} placeholder="Search name or DID" oninput=pfAll()><div class=sg id=sg_${id}></div><select id=${id} onchange=pfAll()></select><input id=n_${id} inputmode=numeric maxlength=2 placeholder="Race number (1-99) - required" hidden></div>`).join('')}</div>`}
+function teamForm(e,t){TF={e,t:t||null,prev:{},dflt:{}};const x=t||{},V=k=>esc(x[k]||'');
+return`<div class=f><label>Team name</label><input id=tn value="${V('name')}">${e.soc?`<label>Team social account</label><input id=ts value="${V('soc')}">`:''}<label>Team Principal name</label><input id=tp value="${V('tp')}"><label>Team Principal WhatsApp</label><input id=tpw inputmode=tel placeholder="0812-3456-7890" value="${V('tpw')}"><label>Team Owner name</label><input id=ow value="${V('ow')}"><label>Team Owner WhatsApp</label><input id=oww inputmode=tel placeholder="0812-3456-7890" value="${V('oww')}">${colorField('tcl','Main Color',x.col||'#e10600')}${colorField('tcl2','Second Color',x.col2||'#ffffff')}${ADMIN?colorField('ttx','Team text color',x.tx||x.col||'#e10600'):''}${SL.map(([id,l])=>`<label>${l}${id[0]=='r'?' (optional)':''}</label><div class=pk><input id=q_${id} placeholder="Search name or DID" oninput=pfAll()><div class=sg id=sg_${id}></div><select id=${id} onchange=pfAll()></select><input id=n_${id} inputmode=numeric maxlength=2 placeholder="Race number (1-99) - required" hidden>${ADMIN?`<div id=dxw_${id} hidden>${colorField('dx_'+id,'Driver text color',x.tx||x.col||'#e10600')}</div>`:''}</div>`).join('')}</div>`}
 function pickD(id,did){$('#'+id).value=did;$('#q_'+id).value='';pfAll()}
 function pfAll(init){const e=TF.e,cur={};SL.forEach(([id],i)=>{const s=$('#'+id);cur[id]=init?((TF.t&&TF.t.d[i])||''):(s?s.value:'')});
 const taken=new Set(S.tm.filter(t=>t.ev==e.id&&(!TF.t||t.id!=TF.t.id)).flatMap(t=>t.d.slice(0,2)));
@@ -108,11 +108,12 @@ const L=S.dr.filter(d=>d.did==cur[id]||(!taken.has(d.did)&&!used.has(d.did)&&(!q
 if(!cur[id]&&/^\d{4}$/.test(q)&&L.length==1)cur[id]=L[0].did;
 $('#'+id).innerHTML=opt([['','Select driver']].concat(L.map(d=>[d.did,nmLabel(d)])),cur[id]);
 const sg=$('#sg_'+id);if(sg)sg.innerHTML=(q&&!cur[id])?(L.length?L.slice(0,6).map(d=>`<button type=button class=sgb onclick="pickD('${id}','${d.did}')">${esc(nmLabel(d))}${ADMIN?' <span class=m>'+d.did+'</span>':''}</button>`).join(''):'<span class=m>No driver found</span>'):'';
-const n=$('#n_'+id);n.hidden=!cur[id];if(TF.prev[id]!==cur[id]){n.value=(init&&cur[id]&&TF.t&&TF.t.num&&TF.t.num[cur[id]])||'';TF.prev[id]=cur[id]}})}
+const n=$('#n_'+id),dw=$('#dxw_'+id);n.hidden=!cur[id];if(dw)dw.hidden=!cur[id];if(TF.prev[id]!==cur[id]){n.value=(init&&cur[id]&&TF.t&&TF.t.num&&TF.t.num[cur[id]])||'';if(dw&&cur[id]){const dv=(TF.t&&TF.t.dtx&&TF.t.dtx[cur[id]])||colorVal('ttx')||'#e10600';$('#dx_'+id).value=dv;$('#dx_'+id+'_h').value=dv;TF.dflt[id]=dv}TF.prev[id]=cur[id]}})}
 function saveTeam(admin){const e=TF.e,old=TF.t,v=i=>($('#'+i)||{value:''}).value.trim(),d=SL.map(([id])=>$('#'+id).value),num={},er=m=>{say(m);return false};
 if(!v('tn')||!v('tp')||!v('ow'))return er('Fill in team name, Team Principal and Team Owner.');
 const w1=normWA(v('tpw')),w2=normWA(v('oww'));if(!w1||!w2)return er('Enter valid WhatsApp numbers for Team Principal and Team Owner.');
 const c1=colorVal('tcl'),c2=colorVal('tcl2');if(!c1||!c2)return er('Enter valid hex colors, e.g. #E10600.');
+let tx='';if(admin){tx=colorVal('ttx');if(!tx)return er('Enter a valid team text color, e.g. #FFFFFF.');if(tx===c1)tx=''}
 if(!d[0]||!d[1])return er('Driver 1 and Driver 2 are required.');
 const f=d.filter(Boolean);if(new Set(f).size<f.length)return er('A driver cannot be selected twice.');
 const others=S.tm.filter(t=>t.ev==e.id&&(!old||t.id!=old.id));
@@ -122,7 +123,8 @@ const usedBy=(dd)=>new Set(others.flatMap(t=>Object.entries(t.num||{}).filter(([
 for(const [id,l] of SL){const dd=$('#'+id).value,val=$('#n_'+id).value.trim();if(!dd)continue;
 if(!/^\d{1,2}$/.test(val)||+val<1)return er('Race number (1-99) is required for '+l+'.');if(usedBy(dd).has(String(+val))||mine.has(String(+val)))return er('Race number '+(+val)+' is already taken.');mine.add(String(+val));num[dd]=String(+val)}
 if(!admin){if(!isOpen(e))return er('Registration is closed.');if(!old&&isFull(e))return er('Team slots are full.')}
-const o={id:old?old.id:uid(),ev:e.id,name:v('tn'),soc:v('ts'),tp:v('tp'),tpw:w1,ow:v('ow'),oww:w2,col:c1,col2:c2,d,num};
+const dtx={};if(admin)for(const [id] of SL){const dd=$('#'+id).value;if(!dd)continue;const dv=colorVal('dx_'+id);if(!dv)return er('Enter a valid driver text color.');if(dv!==TF.dflt[id]){if(dv!==(tx||c1))dtx[dd]=dv}else if(old&&old.dtx&&old.dtx[dd])dtx[dd]=old.dtx[dd]}
+const o={id:old?old.id:uid(),ev:e.id,name:v('tn'),soc:v('ts'),tp:v('tp'),tpw:w1,ow:v('ow'),oww:w2,col:c1,col2:c2,d,num};if(admin){o.tx=tx;o.dtx=dtx}
 if(!admin&&!old&&SYNC=='cloud')return sendReg('team',o).then(async m=>{await load();if(m){say(m);return false}return true});
 if(old)Object.assign(old,o);else S.tm.push(o);save();return true}
 
