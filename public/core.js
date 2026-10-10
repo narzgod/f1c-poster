@@ -60,11 +60,14 @@ const tyFull=t=>`<span class=tf>${tyLogo(t)}${esc(t)}</span>`;
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href^="#"]');if(a){e.preventDefault();location.replace(a.getAttribute('href'))}});
 const Z=()=>({r:0,po:0,w:0,pd:0,dr:0,gp:0,sp:0,sw:0,dnf:0,dsq:0,dns:0,fl:0,p:0,t:0});
 const addAll=(a,b,noT)=>{Object.keys(a).forEach(k=>{if(!(noT&&k=='t'))a[k]+=b[k]||0})};
-function stats(e,only,sf){const m={},g=d=>m[d]=m[d]||Z();evD(e).forEach(g);
-(only||S.rc.filter(r=>r.ev==e.id)).forEach(r=>{const q=gridQ(r),seen=new Set(),inFe=new Set(r.fe.map(x=>x.did));if(q[0]&&(!sf||sf=='q'+lastQi(r)))g(q[0].did).po++;
-[['sp',PS],['fe',PF]].forEach(([k,P])=>{if(sf&&sf!=k)return;r[k].forEach((x,i)=>{const s=g(x.did);if(!(sf&&k=='sp'&&inFe.has(x.did)))seen.add(x.did);if(k=='sp')s.sp++;
+/* points system per event (Manager > Events > Points system); default = F1 style */
+const ptsE=e=>{const o=e.pts||{},ok=a=>Array.isArray(a)&&a.length;return{fe:ok(o.fe)?o.fe:PF,sp:ok(o.sp)?o.sp:PS,pole:+o.pole||0,fl:+o.fl||0,flTop:+o.flTop||0,dr:+o.dr||0}};
+const ptsTxt=e=>{const t=ptsE(e),b=[];if(t.pole)b.push('Pole +'+t.pole);if(t.fl)b.push('Fastest Lap +'+t.fl+(t.flTop?' (top '+t.flTop+')':''));if(t.dr)b.push('Driver of the Race +'+t.dr);return'Race: '+t.fe.join('-')+' | Sprint: '+t.sp.join('-')+(b.length?' | Bonus: '+b.join(', '):'')};
+function stats(e,only,sf){const PT=ptsE(e);const m={},g=d=>m[d]=m[d]||Z();evD(e).forEach(g);
+(only||S.rc.filter(r=>r.ev==e.id)).forEach(r=>{const q=gridQ(r),seen=new Set(),inFe=new Set(r.fe.map(x=>x.did));if(q[0]&&(!sf||sf=='q'+lastQi(r))){g(q[0].did).po++;g(q[0].did).p+=PT.pole}
+[['sp',PT.sp],['fe',PT.fe]].forEach(([k,P])=>{if(sf&&sf!=k)return;r[k].forEach((x,i)=>{const s=g(x.did);if(!(sf&&k=='sp'&&inFe.has(x.did)))seen.add(x.did);if(k=='sp')s.sp++;
 if(x.st){const f=x.st.toLowerCase();if(f in s)s[f]++}else{s.p+=P[i]||0;if(k=='fe'){if(!i)s.w++;if(i<3)s.pd++}else if(!i)s.sw++;const gi=q.findIndex(y=>y.did==x.did)+1;if(gi)s.gp+=gi-(i+1)}});
-if(r.fl[k])g(r.fl[k]).fl++;if(r.dr[k])g(r.dr[k]).dr++});seen.forEach(d=>g(d).r++)});
+if(r.fl[k]){const d=r.fl[k],f=g(d);f.fl++;const fi=r[k].findIndex(x=>x.did==d);if(PT.fl&&fi>=0&&!r[k][fi].st&&(!PT.flTop||fi<PT.flTop))f.p+=PT.fl}if(r.dr[k]){g(r.dr[k]).dr++;g(r.dr[k]).p+=PT.dr}});seen.forEach(d=>g(d).r++)});
 if(e.done&&!only){const t=Object.keys(m).sort((a,b)=>m[b].p-m[a].p||m[b].w-m[a].w)[0];if(t&&m[t].p>0)m[t].t=1}return m}
 /* team of a driver in one round (set per round in Manager), else the registered team */
 /* team of a driver in one session of one round: session setting, else round setting, else the registered team */
@@ -132,7 +135,7 @@ const extra=(e,d,k,c)=>((((e.ty||{})[d]||{})[k]||{})[c])||0;
 const tyTot=(e,d,k,c)=>(alloc(e)[k][c]||0)+extra(e,d,k,c);
 const qMode=(e,r)=>r.qm||e.qm||'one';
 function tyUsed(e,d){const u={q:{Soft:0,Medium:0,Hard:0},r:{Soft:0,Medium:0,Hard:0}};
-S.rc.filter(r=>r.ev==e.id).forEach(r=>{const f=r.fe.find(x=>x.did==d);if(f&&f.st!='DNS'&&f.tyre in u.r)u.r[f.tyre]++;
-const ts=r.q.map(s=>s.find(x=>x.did==d)).filter(x=>x&&x.st!='DNQ'&&x.st!='DNS').map(x=>x.tyre).filter(t=>t in u.q);
+S.rc.filter(r=>r.ev==e.id).forEach(r=>{const f=r.fe.find(x=>x.did==d);if(f&&f.tyre in u.r)u.r[f.tyre]++;
+const ts=r.q.map(s=>s.find(x=>x.did==d)).filter(Boolean).map(x=>x.tyre).filter(t=>t in u.q);
 if(qMode(e,r)=='each')ts.forEach(t=>u.q[t]++);else if(ts.length)u.q[ts[ts.length-1]]++});return u}
 function tyCheck(e,dids,k){for(const d of dids){const u=tyUsed(e,d);for(const c of TC)if(u[k][c]>tyTot(e,d,k,c))return dn(d)+' has no '+c+' tyres left for '+(k=='q'?'Qualifying':'Race')+'. Add supply in the Tyres tab.'}return''}
