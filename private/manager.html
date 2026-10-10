@@ -17,15 +17,15 @@ function saveTy(){const e=E(),n=parseInt($('#cal').value);if(!(n>=1))return say(
 const g=k=>{const o={};TC.forEach(c=>o[c]=Math.max(0,parseInt($('#a_'+k+'_'+c).value)||0));return o},sm=o=>TC.reduce((a,c)=>a+o[c],0),q=g('q'),r=g('r');
 if(sm(q)!=n)return say('Qualifying total is '+sm(q)+' but must be '+n+'.');if(sm(r)!=n)return say('Race total is '+sm(r)+' but must be '+n+'.');
 e.cal=n;e.tq=q;e.tr=r;e.qm=$('#qmd').value;save();say('Tyre allocation saved.');render()}
-function saveEx(i){const e=E(),d=evD(e)[i];e.ty=e.ty||{};const u=tyUsed(e,d),o={q:{},r:{}};let ch=0;
+function saveEx(i){const e=E(),d=evD(e)[i];e.ty=e.ty||{};const u=tyUsed(e,d),o={q:{},r:{}},nt=[];let ch=0;
 for(const k of ['q','r'])for(const c of TC){const raw=($('#x_'+i+'_'+k+'_'+c).value||'').replace(/\s+/g,'').replace(/[\u2212\u2013\u2014]/g,'-');const nm=(k=='q'?'Qualifying ':'Race ')+c;
-if(raw!==''&&!/^[+-]?\d+$/.test(raw))return say('Invalid number "'+raw+'". Use +2 to add or -1 to subtract.');
-const dl=raw===''?0:parseInt(raw,10),cur=extra(e,d,k,c),nx=cur+dl;
-if(nx<0)return say(nm+': extra supply is only '+cur+', cannot subtract '+(-dl)+'.');
-if(alloc(e)[k][c]+nx<u[k][c])return say(nm+': '+u[k][c]+' already used, supply cannot go below that.');
-o[k][c]=nx;if(dl)ch++}
-if(!ch)return say('No change. Type +2 to add or -1 to subtract.');
-e.ty[d]=o;save();say('Extra supply saved for '+dn(d)+'.');render()}
+if(raw!==''&&!/^[+-]?\d+$/.test(raw))return say('Invalid number "'+raw+'". Type 2 to add or -2 to subtract.');
+const dl=raw===''?0:parseInt(raw,10),cur=extra(e,d,k,c);o[k][c]=cur;if(!dl)continue;
+const lim=tyLim(e,k,c),left=tyTot(e,d,k,c)-u[k][c],want=left+dl,nl=Math.min(lim,Math.max(0,want));
+if(want>lim)nt.push(nm+' capped at '+lim+'/'+lim);else if(want<0)nt.push(nm+' set to 0');
+o[k][c]=nl+u[k][c]-lim;ch++}
+if(!ch)return say('No change. Type 2 to add or -2 to subtract.');
+e.ty[d]=o;save();say('Tyre supply saved for '+dn(d)+'.'+(nt.length?' '+nt.join(', ')+'.':''));render()}
 function fltD(i){const e=E(),q=$('#k'+i).value.trim().toLowerCase(),sel=$('#p'+i),cur=sel.value,used=new Set([...Array(ed.n)].map((_,j)=>j==i?'':($('#p'+j)||{}).value).filter(Boolean));
 let L=evD(e).filter(d=>d==cur||(!used.has(d)&&(!q||nmL(d).toLowerCase().includes(q)||d.includes(q))));
 let v=cur;if(!v&&/^\d{4}$/.test(q)&&L.length==1)v=L[0];
@@ -85,7 +85,7 @@ if(at=='ty'){const al=alloc(e),n=calN(e),ds=evD(e);
 const row=(k,l)=>`<label>${l} (total must be ${n})</label><div class=pk3>${TC.map(c=>`<div><small class=m>${tyFull(c)}</small><input id=a_${k}_${c} type=number min=0 inputmode=numeric value="${al[k][c]}"></div>`).join('')}</div>`;
 h+=`<div class=f><h3>Tyre Allocation</h3><p class=m>Default stock for every driver. Each total must equal the number of calendar races.</p><label>Calendar races (1 tyre per race)</label><input id=cal type=number min=1 value="${n}"><label>Qualifying tyre counting (default)</label><select id=qmd>${opt([['one','Count once per race (Q1+Q2+Q3 = 1 tyre)'],['each','Count every session (Q1+Q2+Q3 = 3 tyres)']],e.qm||'one')}</select>${row('q','Qualifying')}${row('r','Race')}<button class=bt onclick=saveTy()>Save Allocation</button></div>`;
 if(!ds.length)return h+'<p class=m>Drivers appear here once teams have registered.</p>';
-return h+'<div class=sec>Extra supply per driver</div>'+ds.map((d,i)=>{const u=tyUsed(e,d);return`<div class=f><b>${esc(dn(d))}</b> <span class=m>${esc(tmO(e,d).name||'')}</span>${['q','r'].map(k=>`<label>${k=='q'?'Qualifying':'Race'} - left / total. Type +N to add, -N to subtract</label><div class=pk3>${TC.map(c=>`<div><small class=m>${tyFull(c)} ${tyTot(e,d,k,c)-u[k][c]}/${tyTot(e,d,k,c)} (extra ${extra(e,d,k,c)})</small><input id=x_${i}_${k}_${c} type=text inputmode=text autocomplete=off placeholder="+0"></div>`).join('')}</div>`).join('')}<button class=x onclick="saveEx(${i})">Save Supply</button></div>`}).join('')}
+return h+'<div class=sec>Tyre supply per driver</div>'+ds.map((d,i)=>{const u=tyUsed(e,d);return`<div class=f><b>${esc(dn(d))}</b> <span class=m>${esc(tmO(e,d).name||'')}</span>${['q','r'].map(k=>`<label>${k=='q'?'Qualifying':'Race'} - left / total. Type a number to add, -number to subtract</label><div class=pk3>${TC.map(c=>`<div><small class=m>${tyFull(c)} ${tyTot(e,d,k,c)-u[k][c]}/${tyLim(e,k,c)}</small><input id=x_${i}_${k}_${c} type=text inputmode=text autocomplete=off placeholder="0"></div>`).join('')}</div>`).join('')}<button class=x onclick="saveEx(${i})">Save Supply</button></div>`}).join('')}
 if(at=='tm'){const ts=evT(e),t=ts.find(x=>x.id==eT);
 if(eT)return h+teamForm(e,t||null)+`<button class=bt onclick=saveT()>Save Changes</button><button class="bt s" onclick="eT=null;render()">Cancel</button>`;
 return h+`<div class=hero><small>Team registration</small><b>${ts.length} / ${e.quota}</b><span>${isOpen(e)?'Open':'Closed'}</span></div><button class=bt style="margin:0 0 14px" onclick="eT='new';render()">Add Team</button><div class=f><label style="margin-top:0">Search team or driver</label><input id=tq placeholder="Team name, driver name or DID" oninput="flt('tq','.tm1')" autocomplete=off></div>`+ts.map(t=>`<div class="cd tm1" data-s="${esc((t.name+' '+t.d.map(d=>d?dn(d)+' '+d:'').join(' ')).toLowerCase())}" style="--a:${t.col||'#8b93a7'};--stripe:linear-gradient(${t.col||'#8b93a7'},${t.col2||t.col||'#8b93a7'})"><div class=rw><div class=nm style="color:${t.col}">${esc(t.name)}<small>${e.soc&&t.soc?esc(t.soc)+' · ':''}Colors ${esc(t.col||'-')} / ${esc(t.col2||'-')}</small></div></div><div class=tp style="display:block"><div>Team Principal: ${esc(t.tp)} · ${waLink(t.tpw)}</div><div>Team Owner: ${esc(t.ow)} · ${waLink(t.oww)}</div>${t.d.map((d,i)=>d?`<div>${['Driver 1','Driver 2','Reserve 1','Reserve 2'][i]}: ${(t.num||{})[d]?'#'+t.num[d]+' ':''}${esc(dn(d))} <span class=m>(DID ${d})</span></div>`:'').join('')}<button class=x onclick="eT='${t.id}';render()">Edit</button><button class=x onclick="delTm('${t.id}')">Delete</button></div></div>`).join('')}
