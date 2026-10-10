@@ -86,7 +86,7 @@ td,.tp,.m{font-family:var(--f-body)}
 a.wa{display:inline-block;background:#1f8f4a;color:#fff;text-decoration:none;border-radius:8px;padding:7px 12px;font-size:13px;font-family:var(--f-ui);font-weight:700}
 details.f summary{cursor:pointer;list-style:none}details.f summary::-webkit-details-marker{display:none}
 
-.tt th,.tt td{text-align:center}.tt td:first-child,.tt th[rowspan]{text-align:left;vertical-align:middle}.tt.rv th,.tt.rv td{text-align:left}.tt .tgl{border-left:2px solid var(--b,#888)}.tt th[colspan],.tt th[rowspan]{font-size:1.05em;letter-spacing:.04em}
+.tt th,.tt td{text-align:center}.tt td:first-child{text-align:left;vertical-align:middle}.tt th[rowspan]{text-align:left;vertical-align:bottom;padding-bottom:14px}.tt.rv th:first-child{text-align:left}.tt .tgl{border-left:2px solid var(--b,#888)}.tt th[colspan],.tt th[rowspan]{font-size:1.05em;letter-spacing:.04em}
 
 .ev .sp{font-family:var(--f-ui);font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--m);margin-bottom:5px}
 .tb h1 small.hsp{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--m);font-weight:700;line-height:1.1;margin-bottom:2px}
