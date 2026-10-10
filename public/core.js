@@ -141,6 +141,6 @@ function tyUsed(e,d){const u={q:{Soft:0,Medium:0,Hard:0},r:{Soft:0,Medium:0,Hard
 S.rc.filter(r=>r.ev==e.id).forEach(r=>{const f=r.fe.find(x=>x.did==d);if(f&&f.tyre in u.r)u.r[f.tyre]++;
 const ts=r.q.map(s=>s.find(x=>x.did==d)).filter(Boolean).map(x=>x.tyre).filter(t=>t in u.q);
 if(qMode(e,r)=='each')ts.forEach(t=>u.q[t]++);else if(ts.length)u.q[ts[ts.length-1]]++});return u}
-const RSL=4,rsKeys=(e,r,skip)=>{const k=new Set();['sp','fe'].forEach(s=>{if(skip&&skip==s)return;(r[s]||[]).forEach(x=>{if(x.rs&&x.did)k.add((tmR(e,x.did,r,s).id||'')+'|'+x.did)})});return k},
+const RSL=4,rsKeys=(e,r,skip)=>{const k=new Set();['sp','fe'].forEach(s=>{if(skip&&skip==s)return;(r[s]||[]).forEach(x=>{if(x.rs&&x.did)k.add((x.rt||tmR(e,x.did,r,s).id||'')+'|'+x.did)})});return k},
 rsCount=(e,skipRid)=>{const c={};S.rc.filter(r=>r.ev==e.id&&r.id!=skipRid).forEach(r=>rsKeys(e,r).forEach(k=>c[k]=(c[k]||0)+1));return c};
 function tyCheck(e,dids,k){for(const d of dids){const u=tyUsed(e,d);for(const c of TC)if(u[k][c]>tyTot(e,d,k,c))return dn(d)+' has no '+c+' tyres left for '+(k=='q'?'Qualifying':'Race')+'. Add supply in the Tyres tab.'}return''}
