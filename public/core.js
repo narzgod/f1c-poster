@@ -60,20 +60,21 @@ const tyFull=t=>`<span class=tf>${tyLogo(t)}${esc(t)}</span>`;
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href^="#"]');if(a){e.preventDefault();location.replace(a.getAttribute('href'))}});
 const Z=()=>({r:0,po:0,w:0,pd:0,dr:0,gp:0,sp:0,sw:0,dnf:0,dsq:0,dns:0,fl:0,p:0,t:0});
 const addAll=(a,b,noT)=>{Object.keys(a).forEach(k=>{if(!(noT&&k=='t'))a[k]+=b[k]||0})};
-function stats(e,only){const m={},g=d=>m[d]=m[d]||Z();evD(e).forEach(g);
-(only||S.rc.filter(r=>r.ev==e.id)).forEach(r=>{const q=gridQ(r),seen=new Set();if(q[0])g(q[0].did).po++;
-[['sp',PS],['fe',PF]].forEach(([k,P])=>{r[k].forEach((x,i)=>{const s=g(x.did);seen.add(x.did);if(k=='sp')s.sp++;
+function stats(e,only,sf){const m={},g=d=>m[d]=m[d]||Z();evD(e).forEach(g);
+(only||S.rc.filter(r=>r.ev==e.id)).forEach(r=>{const q=gridQ(r),seen=new Set(),inFe=new Set(r.fe.map(x=>x.did));if(q[0]&&(!sf||sf=='q'+lastQi(r)))g(q[0].did).po++;
+[['sp',PS],['fe',PF]].forEach(([k,P])=>{if(sf&&sf!=k)return;r[k].forEach((x,i)=>{const s=g(x.did);if(!(sf&&k=='sp'&&inFe.has(x.did)))seen.add(x.did);if(k=='sp')s.sp++;
 if(x.st){const f=x.st.toLowerCase();if(f in s)s[f]++}else{s.p+=P[i]||0;if(k=='fe'){if(!i)s.w++;if(i<3)s.pd++}else if(!i)s.sw++;const gi=q.findIndex(y=>y.did==x.did)+1;if(gi)s.gp+=gi-(i+1)}});
 if(r.fl[k])g(r.fl[k]).fl++;if(r.dr[k])g(r.dr[k]).dr++});seen.forEach(d=>g(d).r++)});
 if(e.done&&!only){const t=Object.keys(m).sort((a,b)=>m[b].p-m[a].p||m[b].w-m[a].w)[0];if(t&&m[t].p>0)m[t].t=1}return m}
 /* team of a driver in one round (set per round in Manager), else the registered team */
-const tmR=(e,d,r)=>{const id=r&&r.tm&&r.tm[d],t=id&&evT(e).find(x=>x.id==id);return t||tmO(e,d)};
-const tcR=(e,d,r)=>tmR(e,d,r).col||'#8b93a7',noR=(e,d,r)=>(tmR(e,d,r).num||{})[d]||noOf(e,d);
+/* team of a driver in one session of one round: session setting, else round setting, else the registered team */
+const tmR=(e,d,r,ses)=>{const id=(r&&ses&&r.ts&&r.ts[ses]&&r.ts[ses][d])||(r&&r.tm&&r.tm[d]),t=id&&evT(e).find(x=>x.id==id);return t||tmO(e,d)};
+const tcR=(e,d,r,ses)=>tmR(e,d,r,ses).col||'#8b93a7',noR=(e,d,r,ses)=>(tmR(e,d,r,ses).num||{})[d]||noOf(e,d);
 /* latest team a driver raced for (shown in driver standings) */
-const drvTm=(e,d)=>{const rs=S.rc.filter(r=>r.ev==e.id);for(let i=rs.length-1;i>=0;i--){const r=rs[i];if([...r.q.flat(),...r.sp,...r.fe].some(x=>x.did==d))return tmR(e,d,r)}return tmO(e,d)};
+const drvTm=(e,d)=>{const rs=S.rc.filter(r=>r.ev==e.id);for(let i=rs.length-1;i>=0;i--){const r=rs[i];for(const k of ['fe','sp','q2','q1','q0']){if((k[0]=='q'?r.q[+k[1]]:r[k]).some(x=>x.did==d))return tmR(e,d,r,k)}}return tmO(e,d)};
 function dItems(e){const m=stats(e);return Object.keys(m).map(d=>{const t=drvTm(e,d);return{k:d,n:dn(d),t:t.name||'-',c:t.col||'#8b93a7',c2:t.col2||'',v:m[d]}})}
 function tItems(e){const m=stats(e),o={};evT(e).forEach(t=>o[t.id]={n:t.name,t:'',c:t.col||'#8b93a7',c2:t.col2||'',v:Z()});
-S.rc.filter(r=>r.ev==e.id).forEach(r=>{const mr=stats(e,[r]);Object.keys(mr).forEach(d=>{const t=tmR(e,d,r);if(t.id&&o[t.id])addAll(o[t.id].v,mr[d],1)})});
+S.rc.filter(r=>r.ev==e.id).forEach(r=>{['q'+lastQi(r),'sp','fe'].forEach(k=>{const mr=stats(e,[r],k);Object.keys(mr).forEach(d=>{const t=tmR(e,d,r,k);if(t.id&&o[t.id])addAll(o[t.id].v,mr[d],1)})})});
 if(e.done){const top=Object.values(o).sort((a,b)=>b.v.p-a.v.p||b.v.w-a.v.w)[0];if(top&&top.v.p>0)top.v.t=1}return Object.values(o)}
 /* Legends Point (LP) system */
 const CAT=['Open Wheel','GT Racing','Prototype Racing','Touring Car Racing','Cup Racing','Production Car Racing','Stock Car Racing','Rally','Rally-Raid','Rallycross','Off-Road Racing','Drag Racing','Drifting','Karting','Electric Racing','Endurance Racing','Hill Climb','Time Attack','Autocross','Truck Racing','Historic Racing'];
