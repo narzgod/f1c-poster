@@ -35,7 +35,7 @@ if(!L.length)return h+'<p class=m>No data yet.</p>';
 return h+fullBtn()+tbl(['Pos',isTeam?'Team':'Driver'].concat(isTeam?[]:['Team']).concat(cols.map(x=>`<span class="${x[0]==stat?'hl':''}">${x[2]}</span>`)),
 L.map((x,i)=>[`<b class="pb ${i?'':'p1'}">${i+1}</b>`,nameTag(x.n,x.tx||x.c,x.c2)].concat(isTeam?[]:[nameTag(x.t,x.tt||x.c,x.c2)]).concat(cols.map(([k])=>`<span class="${k==stat?'hl':''}">${fm(k,x.v[k])}</span>`))),.62,STEP)+vHint(L.length,STEP)+expBtn()}
 function pStand(e,sub,stat){const isT=sub=='tim',it=isT?tItems(e):dItems(e);let ch=null;
-if(e.done){const t=[...it].sort((a,b)=>b.v.t-a.v.t)[0];if(t&&t.v.t)ch=t}const h=rankView(it,'#/e/'+e.id+'/stand',sub,stat,isT,ch);EXP.title=e.name+' - Standings';EXP.note=[['Points',ptsTxt(e)]];return h+`<p class=m style="font-size:12px">${esc(ptsTxt(e))}</p>`}
+if(e.done){const t=[...it].sort((a,b)=>b.v.t-a.v.t)[0];if(t&&t.v.t)ch=t}const h=rankView(it,'#/e/'+e.id+'/stand',sub,stat,isT,ch);const st=SC.some(x=>x[0]==stat)?stat:'p';EXP.title=e.name;EXP.sub=(isT?'Team':'Driver')+' Standings'+(st=='p'?'':' - '+sd0(st));EXP.note=[];return h+`<p class=m style="font-size:12px">${esc(ptsTxt(e))}</p>`}
 function pBoard(sub,stat){if(!S.ev.length)return'<p class=m>No events yet.</p>';const B=board();
 if(sub=='tim')return rankView(B.t,'#/board','tim',stat,true,null);
 const all=lpBoard(),cl=['all'].concat(LCL.map(x=>x[0].toLowerCase())),cur=cl.includes(stat)?stat:'all',L=cur=='all'?all:all.filter(x=>x.cls.toLowerCase()==cur),top=L[0];

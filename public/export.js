@@ -29,7 +29,7 @@ async function saveImg(rg){
     await (document.fonts&&document.fonts.ready);
     await Promise.all([...tb.querySelectorAll('img')].map(im=>im.decode?im.decode().catch(()=>{}):0));
     const W=Math.ceil(Math.max(root.scrollWidth,t.offsetWidth+64,420)),H=Math.ceil(root.getBoundingClientRect().height);
-    root.style.width=W+'px';
+    root.style.width=W+'px';t.style.width='100%';
     const H2=Math.ceil(root.getBoundingClientRect().height);
     const xml=new XMLSerializer().serializeToString(root);
     document.body.removeChild(host);
