@@ -28,7 +28,7 @@ const fl=c=>flagImg(c,32,22);
 const evT=e=>S.tm.filter(t=>t.ev==e.id),evD=e=>[...new Set(evT(e).flatMap(t=>t.d.filter(Boolean)))];
 const isOpen=e=>e.reg!==false,isFull=e=>evT(e).length>=e.quota;
 const regTxt=e=>!isOpen(e)?'Registration Closed':isFull(e)?'Registration Full':'Registration Open';
-const tmO=(e,d)=>evT(e).find(t=>t.d.slice(0,2).includes(d))||evT(e).find(t=>t.d.includes(d))||{},txT=t=>(t&&(t.tx||t.col))||'#8b93a7',txD=(t,d)=>((t&&t.dtx)||{})[d]||txT(t),tc=(e,d)=>txD(tmO(e,d),d),noOf=(e,d)=>(tmO(e,d).num||{})[d]||'-';
+const tmO=(e,d)=>evT(e).find(t=>t.d.slice(0,2).includes(d))||evT(e).find(t=>t.d.includes(d))||{},txT=t=>(t&&(t.tx||t.col))||'#8b93a7',txD=(t,d)=>txT(t),tc=(e,d)=>txD(tmO(e,d),d),noOf=(e,d)=>(tmO(e,d).num||{})[d]||'-';
 const get=(r,s)=>s[0]=='q'?r.q[+s[1]]:r[s];
 const lastQi=r=>{for(let i=2;i>=0;i--)if(r.q[i]&&r.q[i].length)return i;return -1};/* lap time format: m.ss,hh (example 1.23,45). Older saved times like 1:23.456 are converted on display. */
 const fmtLT=v=>{v=String(v||'').trim();if(/^(\d{1,2}\.)?\d{2},\d{2}$/.test(v))return v;const m=v.match(/^(?:(\d{1,2}):)?(\d{1,2})\.(\d{1,3})$/);if(!m)return v;let t=Math.round((+m[1]||0)*6000+(+m[2])*100+Math.round(+('0.'+m[3])*100));const mi=Math.floor(t/6000),se=Math.floor(t%6000/100),hh=t%100,p2=n=>String(n).padStart(2,'0');return(m[1]!=null?mi+'.':'')+(m[1]!=null?p2(se):se<10?p2(se):se)+','+p2(hh)};
@@ -99,7 +99,7 @@ async function addLicP(n,d,w){await READY;const c=chkLic(n,d,w);if(c.err)return 
 if(SYNC!='cloud'){S.dr.push(c.item);save();return''}const e=await sendReg('driver',c.item);await load();return e}
 let TF=null;
 function teamForm(e,t){TF={e,t:t||null,prev:{},dflt:{}};const x=t||{},V=k=>esc(x[k]||'');
-return`<div class=f><label>Team name</label><input id=tn value="${V('name')}">${e.soc?`<label>Team social account</label><input id=ts value="${V('soc')}">`:''}<label>Team Principal name</label><input id=tp value="${V('tp')}"><label>Team Principal WhatsApp</label><input id=tpw inputmode=tel placeholder="0812-3456-7890" value="${V('tpw')}"><label>Team Owner name</label><input id=ow value="${V('ow')}"><label>Team Owner WhatsApp</label><input id=oww inputmode=tel placeholder="0812-3456-7890" value="${V('oww')}">${colorField('tcl','Main Color',x.col||'#e10600')}${colorField('tcl2','Second Color',x.col2||'#ffffff')}${ADMIN?colorField('ttx','Team text color',x.tx||x.col||'#e10600'):''}${SL.map(([id,l])=>`<label>${l}${id[0]=='r'?' (optional)':''}</label><div class=pk><input id=q_${id} placeholder="Search name or DID" oninput=pfAll()><div class=sg id=sg_${id}></div><select id=${id} onchange=pfAll()></select><input id=n_${id} inputmode=numeric maxlength=2 placeholder="Race number (1-99) - required" hidden>${ADMIN?`<div id=dxw_${id} hidden>${colorField('dx_'+id,'Driver text color',x.tx||x.col||'#e10600')}</div>`:''}</div>`).join('')}</div>`}
+return`<div class=f><label>Team name</label><input id=tn value="${V('name')}">${e.soc?`<label>Team social account</label><input id=ts value="${V('soc')}">`:''}<label>Team Principal name</label><input id=tp value="${V('tp')}"><label>Team Principal WhatsApp</label><input id=tpw inputmode=tel placeholder="0812-3456-7890" value="${V('tpw')}"><label>Team Owner name</label><input id=ow value="${V('ow')}"><label>Team Owner WhatsApp</label><input id=oww inputmode=tel placeholder="0812-3456-7890" value="${V('oww')}">${colorField('tcl','Main Color',x.col||'#e10600')}${colorField('tcl2','Second Color',x.col2||'#ffffff')}${ADMIN?colorField('ttx','Team & driver text color',x.tx||x.col||'#e10600'):''}${SL.map(([id,l])=>`<label>${l}${id[0]=='r'?' (optional)':''}</label><div class=pk><input id=q_${id} placeholder="Search name or DID" oninput=pfAll()><div class=sg id=sg_${id}></div><select id=${id} onchange=pfAll()></select><input id=n_${id} inputmode=numeric maxlength=2 placeholder="Race number (1-99) - required" hidden></div>`).join('')}</div>`}
 function pickD(id,did){$('#'+id).value=did;$('#q_'+id).value='';pfAll()}
 function pfAll(init){const e=TF.e,cur={};SL.forEach(([id],i)=>{const s=$('#'+id);cur[id]=init?((TF.t&&TF.t.d[i])||''):(s?s.value:'')});
 const taken=new Set(S.tm.filter(t=>t.ev==e.id&&(!TF.t||t.id!=TF.t.id)).flatMap(t=>t.d.slice(0,2)));
@@ -108,7 +108,7 @@ const L=S.dr.filter(d=>d.did==cur[id]||(!taken.has(d.did)&&!used.has(d.did)&&(!q
 if(!cur[id]&&/^\d{4}$/.test(q)&&L.length==1)cur[id]=L[0].did;
 $('#'+id).innerHTML=opt([['','Select driver']].concat(L.map(d=>[d.did,nmLabel(d)])),cur[id]);
 const sg=$('#sg_'+id);if(sg)sg.innerHTML=(q&&!cur[id])?(L.length?L.slice(0,6).map(d=>`<button type=button class=sgb onclick="pickD('${id}','${d.did}')">${esc(nmLabel(d))}${ADMIN?' <span class=m>'+d.did+'</span>':''}</button>`).join(''):'<span class=m>No driver found</span>'):'';
-const n=$('#n_'+id),dw=$('#dxw_'+id);n.hidden=!cur[id];if(dw)dw.hidden=!cur[id];if(TF.prev[id]!==cur[id]){n.value=(init&&cur[id]&&TF.t&&TF.t.num&&TF.t.num[cur[id]])||'';if(dw&&cur[id]){const dv=(TF.t&&TF.t.dtx&&TF.t.dtx[cur[id]])||colorVal('ttx')||'#e10600';$('#dx_'+id).value=dv;$('#dx_'+id+'_h').value=dv;TF.dflt[id]=dv}TF.prev[id]=cur[id]}})}
+const n=$('#n_'+id);n.hidden=!cur[id];if(TF.prev[id]!==cur[id]){n.value=(init&&cur[id]&&TF.t&&TF.t.num&&TF.t.num[cur[id]])||'';TF.prev[id]=cur[id]}})}
 function saveTeam(admin){const e=TF.e,old=TF.t,v=i=>($('#'+i)||{value:''}).value.trim(),d=SL.map(([id])=>$('#'+id).value),num={},er=m=>{say(m);return false};
 if(!v('tn')||!v('tp')||!v('ow'))return er('Fill in team name, Team Principal and Team Owner.');
 const w1=normWA(v('tpw')),w2=normWA(v('oww'));if(!w1||!w2)return er('Enter valid WhatsApp numbers for Team Principal and Team Owner.');
@@ -123,8 +123,7 @@ const usedBy=(dd)=>new Set(others.flatMap(t=>Object.entries(t.num||{}).filter(([
 for(const [id,l] of SL){const dd=$('#'+id).value,val=$('#n_'+id).value.trim();if(!dd)continue;
 if(!/^\d{1,2}$/.test(val)||+val<1)return er('Race number (1-99) is required for '+l+'.');if(usedBy(dd).has(String(+val))||mine.has(String(+val)))return er('Race number '+(+val)+' is already taken.');mine.add(String(+val));num[dd]=String(+val)}
 if(!admin){if(!isOpen(e))return er('Registration is closed.');if(!old&&isFull(e))return er('Team slots are full.')}
-const dtx={};if(admin)for(const [id] of SL){const dd=$('#'+id).value;if(!dd)continue;const dv=colorVal('dx_'+id);if(!dv)return er('Enter a valid driver text color.');if(dv!==TF.dflt[id]){if(dv!==(tx||c1))dtx[dd]=dv}else if(old&&old.dtx&&old.dtx[dd])dtx[dd]=old.dtx[dd]}
-const o={id:old?old.id:uid(),ev:e.id,name:v('tn'),soc:v('ts'),tp:v('tp'),tpw:w1,ow:v('ow'),oww:w2,col:c1,col2:c2,d,num};if(admin){o.tx=tx;o.dtx=dtx}
+const o={id:old?old.id:uid(),ev:e.id,name:v('tn'),soc:v('ts'),tp:v('tp'),tpw:w1,ow:v('ow'),oww:w2,col:c1,col2:c2,d,num};if(admin){o.tx=tx;delete o.dtx;if(old)delete old.dtx}
 if(!admin&&!old&&SYNC=='cloud')return sendReg('team',o).then(async m=>{await load();if(m){say(m);return false}return true});
 if(old)Object.assign(old,o);else S.tm.push(o);save();return true}
 
