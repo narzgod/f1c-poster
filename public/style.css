@@ -90,3 +90,8 @@ details.f summary{cursor:pointer;list-style:none}details.f summary::-webkit-deta
 
 .ev .sp{font-family:var(--f-ui);font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--m);margin-bottom:5px}
 .tb h1 small.hsp{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--m);font-weight:700;line-height:1.1;margin-bottom:2px}
+
+/* long ranking tables: show the top rows, scroll inside for the rest */
+.sc.sv{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}.sc.sv th{position:sticky;top:0;z-index:2;background:var(--s1);box-shadow:inset 0 -1px 0 var(--ln)}
+.xpk{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}.xpk small{flex-basis:100%;font-size:12px}.xpk button{margin:0!important}
+.vh{font-size:12px;margin:8px 2px 0}

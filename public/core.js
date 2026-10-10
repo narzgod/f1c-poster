@@ -39,7 +39,7 @@ const gridQ=r=>{const seen=new Set(),o=[];for(let i=2;i>=0;i--)(r.q[i]||[]).forE
 const lastQ=r=>{const q=r.q.filter(a=>a.length);return q.length?q[q.length-1]:[]};
 const opt=(a,sel)=>a.map(([v,t])=>`<option value="${esc(v)}" ${v==sel?'selected':''}>${esc(t)}</option>`).join('');
 const chips=a=>`<div class=ch>${a.map(([t,h,on])=>`<a href="${h}" class="${on?'on':''}">${t}</a>`).join('')}</div>`;
-const tbl=(h,rows,fit)=>`<div class=sc${fit?` data-fit="${fit}"`:''}><table><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}</table></div>`;
+const tbl=(h,rows,fit,vis)=>`<div class="sc${vis&&rows.length>vis?' sv':''}"${fit?` data-fit="${fit}"`:''}${vis&&rows.length>vis?` data-vis="${vis}"`:''}><table><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}</table></div>`;
 const hx=v=>{v=(v||'').trim().replace(/^#/,'');if(/^[0-9a-f]{3}$/i.test(v))v=v.split('').map(c=>c+c).join('');return /^[0-9a-f]{6}$/i.test(v)?'#'+v.toLowerCase():''};
 const colorField=(id,label,val)=>`<label>${label}</label><div class=cp><input id=${id} type=color value="${val}" oninput="$('#${id}_h').value=this.value"><input id=${id}_h value="${val}" placeholder="#E10600" maxlength=7 oninput="const c=hx(this.value);if(c)$('#${id}').value=c"></div>`;
 const colorVal=id=>hx(($('#'+id+'_h')||{value:''}).value);
@@ -49,7 +49,8 @@ function mount(T,bk,tabs,body,A){const sp=TSP;TSP='';try{EXP.sp=sp}catch(_){}A=A
 $('#tb').innerHTML=(bk?`<a class=bk href="${bk}">&larr;</a>`:'')+(T?`<h1>${sp?`<small class=hsp>${esc(sp)}</small>`:''}${esc(T)}</h1>`:'<div class=br>fRacing <b>LEGENDS</b></div>');
 $('#bar').innerHTML=tabs?tabs.map(([n,h,on])=>`<a href="${h}" class="${on?'on':''}">${n}</a>`).join(''):'';$('#bar').style.display=tabs?'flex':'none';$('#app').innerHTML=body;requestAnimationFrame(fitTables)}
 /* zoom wide tables out so everything fits on screen (data-fit = smallest allowed zoom) */
-function fitTables(){document.querySelectorAll('.sc[data-fit]').forEach(sc=>{const t=sc.querySelector('table');if(!t)return;t.style.zoom='';t.style.width='';sc.classList.add('fit');t.style.width='max-content';const nat=t.offsetWidth,av=sc.clientWidth,mn=parseFloat(sc.dataset.fit)||.3;let z=av>0&&nat>0?Math.min(1,av/nat):1;if(z<mn)z=mn;if(z<1){t.style.zoom=z}else{t.style.zoom='';t.style.width=''}})}
+function fitTables(){document.querySelectorAll('.sc[data-fit]').forEach(sc=>{const t=sc.querySelector('table');if(!t)return;t.style.zoom='';t.style.width='';sc.classList.add('fit');t.style.width='max-content';const nat=t.offsetWidth,av=sc.clientWidth,mn=parseFloat(sc.dataset.fit)||.3;let z=av>0&&nat>0?Math.min(1,av/nat):1;if(z<mn)z=mn;if(z<1){t.style.zoom=z}else{t.style.zoom='';t.style.width=''}
+const vis=parseInt(sc.dataset.vis)||0;sc.style.maxHeight='';if(vis&&t.rows.length>vis+1){const st=sc.scrollTop;sc.scrollTop=0;const nx=t.rows[vis+1];sc.style.maxHeight=Math.ceil(nx.getBoundingClientRect().top-sc.getBoundingClientRect().top)+'px';sc.scrollTop=st}})}
 addEventListener('resize',fitTables);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitTables);
 /* tyre colours: Soft red, Medium yellow, Hard white, Inter green, Wet blue */
 const TYC={Soft:'#e10600',Medium:'#ffd100',Hard:'#f2f2f2',Inter:'#1fb84a',Wet:'#1f78ff'};
@@ -82,7 +83,7 @@ if(e.done){const top=Object.values(o).sort((a,b)=>b.v.p-a.v.p||b.v.w-a.v.w)[0];i
 /* Legends Point (LP) system */
 const CAT=['Open Wheel','GT Racing','Prototype Racing','Touring Car Racing','Cup Racing','Production Car Racing','Stock Car Racing','Rally','Rally-Raid','Rallycross','Off-Road Racing','Drag Racing','Drifting','Karting','Electric Racing','Endurance Racing','Hill Climb','Time Attack','Autocross','Truck Racing','Historic Racing'];
 const CATOLD={F1:'Open Wheel',F3:'Open Wheel',GT3:'GT Racing',GT4:'GT Racing','MX-5':'Cup Racing',GR86:'Cup Racing'},catOf=e=>CAT.includes(e.cat)?e.cat:(CATOLD[e.cat]||CAT[0]);
-const catM=e=>{const v=parseFloat(((S.cm||{})[catOf(e)]));return v>=0?v:1};
+const catM=e=>{const v=parseFloat(((S.cm||{})[e.cls]));return v>=0?v:1};
 const LCL=[['Rookie',100],['D',200],['C',250],['B',300],['A',450],['Pro',1e9]],lcOf=sc=>LCL.find(x=>sc<=x[1])[0];
 const baseSc=v=>((v.r/100)*.05+(v.w/10)*.2+(v.pd/15)*.15+(v.po/80)*.07+(v.sw/50)*.03+(v.t/5)*.14)*1000;
 function lpBoard(){const d={};S.ev.forEach(e=>{const m=catM(e);dItems(e).forEach(x=>{const a=d[x.k]=d[x.k]||{k:x.k,n:x.n,t:'-',c:x.c,c2:x.c2,tx:x.tx,tt:x.tt,v:Z(),sc:0};addAll(a.v,x.v);a.sc+=baseSc(x.v)*m;if(x.t!='-'){a.t=x.t;a.c=x.c;a.c2=x.c2;a.tx=x.tx;a.tt=x.tt}})});

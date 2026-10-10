@@ -1,9 +1,15 @@
 /* Save the current table as a JPG: full table, nothing cut off, nothing wrapped */
 let EXP={title:'',sub:'',note:[]};
-const expBtn=()=>'<button class="bt s" onclick="saveImg()">Save as JPG</button>';
+const expBtn=()=>'<button class="bt s" onclick="saveImg()">Save as JPG</button><div id="xpick"></div>';
+const expOpts=R=>{const o=[];for(let a=1;a<=R.total;a+=R.step)o.push([a,Math.min(a+R.step-1,R.total)]);return o};
 const b64=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
-async function saveImg(){
+async function saveImg(rg){
   const src=document.querySelector('#app .sc');if(!src)return say('Nothing to save yet.');
+  const R=EXP.rank;
+  if(R&&!rg){const o=expOpts(R);if(!o.length)return say('Nothing to save yet.');
+    if(o.length>1){const h=document.getElementById('xpick');if(h)h.innerHTML='<div class="xpk"><small class="m">Choose which positions to save</small>'+o.map(([a,b])=>`<button type="button" class="x" onclick="saveImg([${a},${b}])">Top ${b}${a>1?' ('+a+'-'+b+')':''}</button>`).join('')+'</div>';return}
+    rg=o[0]}
+  if(!R)rg=null;
   say('Preparing image...');
   try{
     let css=await (await fetch('/style.css')).text();
@@ -12,9 +18,10 @@ async function saveImg(){
     const host=document.createElement('div');host.id='xhost';
     host.style.cssText='position:fixed;left:-100000px;top:0;width:max-content';
     const note=(EXP.note||[]).map(([k,v])=>`<span class="xn"><small>${esc(k)}</small>${esc(v)}</span>`).join('');
-    host.innerHTML=`<div xmlns="http://www.w3.org/1999/xhtml" id="xroot" style="display:inline-block;background:#0c0d12;color:#f2f4f8;padding:30px 32px 22px;font-family:'MotoGP Text',Arial,sans-serif;font-size:15px;line-height:1.5;box-sizing:border-box"><div class="xh"><div class="br">fRacing <b>LEGENDS</b></div>${EXP.sp?`<div style="font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#8b93a7;font-weight:700;margin-bottom:6px">${esc(EXP.sp)}</div>`:''}<div class="xt">${esc(EXP.title)}</div><div class="xs">${esc(EXP.sub||'')}</div>${note?`<div class="xnn">${note}</div>`:''}</div><div class="xtb"></div><div class="xf">frl1championship.vercel.app</div></div>`;
+    host.innerHTML=`<div xmlns="http://www.w3.org/1999/xhtml" id="xroot" style="display:inline-block;background:#0c0d12;color:#f2f4f8;padding:30px 32px 22px;font-family:'MotoGP Text',Arial,sans-serif;font-size:15px;line-height:1.5;box-sizing:border-box"><div class="xh"><div class="br">fRacing <b>LEGENDS</b></div>${EXP.sp?`<div style="font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#8b93a7;font-weight:700;margin-bottom:6px">${esc(EXP.sp)}</div>`:''}<div class="xt">${esc(EXP.title)}</div><div class="xs">${esc(EXP.sub||'')}</div>${note?`<div class="xnn">${note}</div>`:''}</div>${rg?`<div class="xr">Top ${rg[1]}${rg[0]>1?`<small>Positions ${rg[0]}-${rg[1]}</small>`:''}</div>`:''}<div class="xtb"></div><div class="xf">frl1championship.vercel.app</div></div>`;
     const tb=src.cloneNode(true);tb.removeAttribute('data-fit');tb.className='sc';tb.style.cssText='overflow:visible;border-radius:12px';
-    const t=tb.querySelector('table');t.style.cssText='width:max-content;zoom:1';
+    tb.removeAttribute('data-vis');const t=tb.querySelector('table');t.style.cssText='width:max-content;zoom:1';
+    if(rg)[...t.rows].slice(1).forEach((r,i)=>{if(i+1<rg[0]||i+1>rg[1])r.remove()});
     for(const im of tb.querySelectorAll('img')){const x=await (await fetch(im.getAttribute('src'))).text();im.setAttribute('src','data:image/svg+xml;charset=utf-8,'+encodeURIComponent(x))}
     host.querySelector('.xtb').replaceWith(tb);
     document.body.appendChild(host);
@@ -26,7 +33,7 @@ async function saveImg(){
     const H2=Math.ceil(root.getBoundingClientRect().height);
     const xml=new XMLSerializer().serializeToString(root);
     document.body.removeChild(host);
-    const extra=`.xh{margin-bottom:18px}.xh .br{font-family:var(--f-title);font-size:16px;letter-spacing:.04em}.xt{font-family:var(--f-title);font-size:26px;margin-top:6px;line-height:1.2}.xs{font-family:var(--f-ui);font-weight:700;color:#e10600;letter-spacing:.08em;text-transform:uppercase;font-size:13px;margin-top:2px}.xnn{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.xn{background:#14161d;border:1px solid #262a36;border-radius:10px;padding:8px 12px;font-size:14px}.xn small{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8b93a7;font-weight:700}.xf{margin-top:14px;color:#8b93a7;font-size:12px;text-align:right}`;
+    const extra=`.xh{margin-bottom:18px}.xh .br{font-family:var(--f-title);font-size:16px;letter-spacing:.04em}.xt{font-family:var(--f-title);font-size:26px;margin-top:6px;line-height:1.2}.xs{font-family:var(--f-ui);font-weight:700;color:#e10600;letter-spacing:.08em;text-transform:uppercase;font-size:13px;margin-top:2px}.xnn{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.xn{background:#14161d;border:1px solid #262a36;border-radius:10px;padding:8px 12px;font-size:14px}.xn small{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8b93a7;font-weight:700}.xr{display:flex;align-items:baseline;gap:12px;margin:0 0 12px;padding-left:10px;border-left:4px solid #e10600;font-family:var(--f-title);font-size:24px;letter-spacing:.04em;text-transform:uppercase}.xr small{font-family:var(--f-ui);font-weight:700;font-size:13px;color:#8b93a7;letter-spacing:.1em}.xf{margin-top:14px;color:#8b93a7;font-size:12px;text-align:right}`;
     const HB=H2+Math.max(300,Math.ceil(H2*.35));/* spare room: the final height is cropped to the real content below */
     const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${HB}"><foreignObject x="0" y="0" width="${W}" height="${HB}"><style><![CDATA[${css}\n${extra}]]></style>${xml}</foreignObject></svg>`;
     const img=new Image();
@@ -38,7 +45,7 @@ async function saveImg(){
     const outH=last?Math.min(cv.height,last+Math.round(22*k)):Math.min(cv.height,Math.round(H2*k));
     const out=document.createElement('canvas');out.width=cv.width;out.height=outH;const ox=out.getContext('2d');ox.fillStyle='#0c0d12';ox.fillRect(0,0,out.width,out.height);ox.drawImage(cv,0,0);
     const blob=await new Promise(r=>out.toBlob(r,'image/jpeg',.93));
-    const a=document.createElement('a'),nm=((EXP.title||'table')+' '+(EXP.sub||'')).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    const a=document.createElement('a'),nm=((EXP.title||'table')+' '+(EXP.sub||'')+(rg?' top '+rg[1]:'')).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
     a.href=URL.createObjectURL(blob);a.download=nm+'.jpg';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
     say('Image saved as '+nm+'.jpg');
   }catch(e){const h=document.getElementById('xhost');if(h)h.remove();say('Could not create the image on this browser. Try Chrome.')}
