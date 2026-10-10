@@ -22,6 +22,10 @@ function fltD(i){const e=E(),q=$('#k'+i).value.trim().toLowerCase(),sel=$('#p'+i
 let L=evD(e).filter(d=>d==cur||(!used.has(d)&&(!q||nmL(d).toLowerCase().includes(q)||d.includes(q))));
 let v=cur;if(!v&&/^\d{4}$/.test(q)&&L.length==1)v=L[0];
 sel.innerHTML=opt([['','Select driver']].concat(L.map(d=>[d,nmL(d)+' ('+d+')'])),v)}
+let rtApply=false;
+function saveRt(){const e=E(),r=S.rc.find(x=>x.id==ed.rid),rs=S.rc.filter(x=>x.ev==e.id),at=rs.findIndex(x=>x.id==r.id),ap=$('#rtall').checked;rtApply=ap;let n=0;
+document.querySelectorAll('[data-rt]').forEach(sel=>{const d=sel.dataset.rt,cur=tmR(e,d,r).id||'';if(sel.value&&sel.value!=cur){(ap?rs.slice(at):[r]).forEach(x=>{x.tm=x.tm||{};x.tm[d]=sel.value});n++}});
+save();say(n?'Team changed for '+n+' driver'+(n>1?'s':'')+(ap?' from this round onward.':' in this round.'):'No team changes.');render()}
 function saveRes(){col();const r=S.rc.find(x=>x.id==ed.rid),s=ed.ses,ids=ed.rows.map(x=>x.did);
 if(ids.some(x=>!x))return say('Every position needs a driver.');if(new Set(ids).size<ids.length)return say('A driver cannot be selected twice.');
 if(s[0]=='q'&&ed.lt&&!okLT(ed.lt))return say('Lap time format: 1.23,45 (minutes.seconds,hundredths)');
@@ -75,6 +79,8 @@ if(at=='rc')return h+`<div class=f><h3>Add Race</h3><label>Date</label><input id
 if(!rs.length)return h+'<p class=m>Add a race first.</p>';
 if(!rs.some(r=>r.id==ed.rid)){ed.rid=rs[0].id;ldEd(rs[0])}
 const s=ed.ses,[a,b]=rng(s);
+{const rr=S.rc.find(x=>x.id==ed.rid),ts=evT(e),dd=evD(e).filter(d=>[...rr.q.flat(),...rr.sp,...rr.fe].some(x=>x.did==d)||!(rr.q.flat().length+rr.sp.length+rr.fe.length));
+h+=`<div class=f><h3>Teams in this round</h3><p class=m>Change a driver's team for ${esc(rr.circ)}. Points and results of this round count for the team chosen here.</p><label>Race</label><select onchange=chR(this.value)>${opt(rs.map((x,i)=>[x.id,'Round '+(i+1)+' - '+x.circ]),ed.rid)}</select>${dd.length?dd.map(d=>`<div class=rbox><b>${esc(nmL(d))}</b><select data-rt="${d}" style="margin-top:6px">${opt([['','No team']].concat(ts.map(t=>[t.id,t.name])),tmR(e,d,rr).id||'')}</select></div>`).join(''):'<p class=m>No drivers yet.</p>'}<label class=ck><input id=rtall type=checkbox ${rtApply?'checked':''}> Also apply to all later rounds</label><button class=bt onclick=saveRt()>Save Teams</button></div>`}
 h+=`<div class=f><h3>Enter Results</h3><label>Race</label><select onchange=chR(this.value)>${opt(rs.map((x,i)=>[x.id,'Round '+(i+1)+' - '+x.circ]),ed.rid)}</select><label>Session</label><select onchange=chS(this.value)>${opt(Object.entries(NM),s)}</select><label>Number of drivers</label><select onchange=chN(this.value)>${opt([...Array(b-a+1)].map((_,i)=>[a+i,(a+i)+' drivers']),ed.n)}</select>`;
 if(s[0]=='q'){const rr=rs.find(x=>x.id==ed.rid)||{};h+=`<label>Qualifying tyre counting for this race</label><select id=qm>${opt([['','Event default ('+(e.qm=='each'?'every session':'once per race')+')'],['one','Count once per race'],['each','Count every session']],rr.qm||'')}</select>`}
 const stO=s[0]=='q'?[['','Finished'],['DSQ','DSQ'],['DNQ','DNQ'],['DNF','DNF']]:[['','Finished'],['DSQ','DSQ'],['DNS','DNS'],['DNF','DNF']];

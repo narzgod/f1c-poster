@@ -10,16 +10,16 @@ function pHome(){return'<h2 class=ph>Events</h2>'+(S.ev.length?S.ev.map(e=>`<a c
 function pRace(e){const rs=S.rc.filter(r=>r.ev==e.id);
 if(!rs.length)return'<p class=m>No races scheduled yet.</p>';
 return'<div class=sec>Race calendar</div>'+rs.map(r=>{const rows=r.fe.length?r.fe:r.sp,top=rows.filter(x=>!x.st).slice(0,3);
-return`<a class=cd href="#/r/${r.id}"><div class=rw><div class=fw>${flagImg(r.flag,64,44)}</div><div class=nm>${esc(r.circ)}<small>${esc(r.country)}${r.date?' · '+esc(r.date):''}</small></div><span class="chip ${rows.length?'on':''}">${rows.length?'Completed':'Upcoming'}</span></div>${top.length?`<div class=tp>${top.map((x,i)=>`<span><b class=pb>${i+1}</b><span style="color:${tc(e,x.did)}">${esc(sn(dn(x.did)))}</span></span>`).join('')}</div>`:''}</a>`}).join('')}
+return`<a class=cd href="#/r/${r.id}"><div class=rw><div class=fw>${flagImg(r.flag,64,44)}</div><div class=nm>${esc(r.circ)}<small>${esc(r.country)}${r.date?' · '+esc(r.date):''}</small></div><span class="chip ${rows.length?'on':''}">${rows.length?'Completed':'Upcoming'}</span></div>${top.length?`<div class=tp>${top.map((x,i)=>`<span><b class=pb>${i+1}</b><span style="color:${tcR(e,x.did,r)}">${esc(sn(dn(x.did)))}</span></span>`).join('')}</div>`:''}</a>`}).join('')}
 function pRes(e,r,ses){const av=Object.keys(NM).filter(s=>get(r,s).length),h0=`<div class=rh><div class=fw style="flex-basis:92px;width:92px">${flagImg(r.flag,92,64)}</div><div><h2>${esc(r.circ)}</h2>`;
 if(!av.length)return h0+'</div></div><p class=m>No results yet.</p>';
 if(!av.includes(ses))ses=av.includes('fe')?'fe':av.includes('sp')?'sp':av[av.length-1];
-const rows=get(r,ses),q=lastQ(r),isR=ses[0]!='q',pole=q[0]?esc(dn(q[0].did)):'-',plt=poleLT(r),stx=x=>!isR&&x=='DNS'?'DNQ':x;
+const rows=get(r,ses),q=gridQ(r),isR=ses[0]!='q',pole=q[0]?esc(dn(q[0].did)):'-',plt=poleLT(r),stx=x=>!isR&&x=='DNS'?'DNQ':x;
 EXP={title:e.name+' - '+r.circ,sub:NM[ses]+(r.date?' - '+r.date:''),note:[['Pole Position',dn((q[0]||{}).did||'')+(plt?' ('+plt+')':'')],isR?['Fastest Lap',dn(r.fl[ses])]:null,isR?['Driver of the Race',dn(r.dr[ses])]:null].filter(x=>x&&x[1]&&x[1]!=' ()'),flag:r.flag};
 return h0+`<div>${NM[ses]}</div></div></div><div class=fx>${isR?`<div>Fastest Lap<i>${esc(dn(r.fl[ses])||'-')}</i></div>`:''}<div>Pole Position<i>${pole}${plt?` <span class=lt>${esc(plt)}</span>`:''}</i></div>${isR?`<div>Driver of the Race<i>${esc(dn(r.dr[ses])||'-')}</i></div>`:''}</div>`+
 chips(av.map(s=>[NM[s],'#/r/'+r.id+'/'+s,s==ses]))+
-tbl(['Pos','No','Driver','Team','Grid','Tyre'],rows.map((x,i)=>{const c=tc(e,x.did),g=isR?(q.findIndex(y=>y.did==x.did)+1||'-'):i+1;
-return[`<b class="pb ${x.st?'dim':i==0?'p1':''}">${stx(x.st)||i+1}</b>`,`<span style="color:${c}">${esc(noOf(e,x.did))}</span>`,esc(dn(x.did)),nameTag(tmO(e,x.did).name||'-',c,tmO(e,x.did).col2),g,tyDot(x.tyre)]}),.3)+expBtn()}
+tbl(['Pos','No','Driver','Team','Grid','Tyre'],rows.map((x,i)=>{const c=tcR(e,x.did,r),g=isR?(q.findIndex(y=>y.did==x.did)+1||'-'):i+1;
+return[`<b class="pb ${x.st?'dim':i==0?'p1':''}">${stx(x.st)||i+1}</b>`,`<span style="color:${c}">${esc(noR(e,x.did,r))}</span>`,esc(dn(x.did)),nameTag(tmR(e,x.did,r).name||'-',c,tmR(e,x.did,r).col2),g,tyDot(x.tyre)]}),.3)+expBtn()}
 const sd0=k=>(SC.find(x=>x[0]==k)||SC[12])[1];
 function rankView(items,base,scope,stat,isTeam,champ){EXP={title:base.indexOf('board')>0?'Legends Board':'Standings',sub:(isTeam?'Team':'Driver')+' ranking - '+sd0(stat),note:[]};stat=SC.some(x=>x[0]==stat)?stat:'p';const sd=SC.find(x=>x[0]==stat),B=base+'/'+scope+'/';
 const L=[...items].sort((a,b)=>b.v[stat]-a.v[stat]||b.v.p-a.v.p||b.v.w-a.v.w),top=L[0],fm=(k,v)=>k=='gp'&&v>0?'+'+v:v;

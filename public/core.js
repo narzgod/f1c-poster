@@ -34,6 +34,8 @@ const lastQi=r=>{for(let i=2;i>=0;i--)if(r.q[i]&&r.q[i].length)return i;return -
 const fmtLT=v=>{v=String(v||'').trim();if(/^(\d{1,2}\.)?\d{2},\d{2}$/.test(v))return v;const m=v.match(/^(?:(\d{1,2}):)?(\d{1,2})\.(\d{1,3})$/);if(!m)return v;let t=Math.round((+m[1]||0)*6000+(+m[2])*100+Math.round(+('0.'+m[3])*100));const mi=Math.floor(t/6000),se=Math.floor(t%6000/100),hh=t%100,p2=n=>String(n).padStart(2,'0');return(m[1]!=null?mi+'.':'')+(m[1]!=null?p2(se):se<10?p2(se):se)+','+p2(hh)};
 const okLT=v=>/^(\d{1,2}\.)?\d{2},\d{2}$/.test(v);
 const poleLT=r=>{const i=lastQi(r);return i<0?'':fmtLT((r.lt||{})['q'+i]||'')};
+/* starting grid: last qualifying session first, then drivers who dropped out in earlier sessions, in the order of the session they last took part in */
+const gridQ=r=>{const seen=new Set(),o=[];for(let i=2;i>=0;i--)(r.q[i]||[]).forEach(x=>{if(!seen.has(x.did)){seen.add(x.did);o.push(x)}});return o};
 const lastQ=r=>{const q=r.q.filter(a=>a.length);return q.length?q[q.length-1]:[]};
 const opt=(a,sel)=>a.map(([v,t])=>`<option value="${esc(v)}" ${v==sel?'selected':''}>${esc(t)}</option>`).join('');
 const chips=a=>`<div class=ch>${a.map(([t,h,on])=>`<a href="${h}" class="${on?'on':''}">${t}</a>`).join('')}</div>`;
@@ -58,15 +60,20 @@ const tyFull=t=>`<span class=tf>${tyLogo(t)}${esc(t)}</span>`;
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href^="#"]');if(a){e.preventDefault();location.replace(a.getAttribute('href'))}});
 const Z=()=>({r:0,po:0,w:0,pd:0,dr:0,gp:0,sp:0,sw:0,dnf:0,dsq:0,dns:0,fl:0,p:0,t:0});
 const addAll=(a,b,noT)=>{Object.keys(a).forEach(k=>{if(!(noT&&k=='t'))a[k]+=b[k]||0})};
-function stats(e){const m={},g=d=>m[d]=m[d]||Z();evD(e).forEach(g);
-S.rc.filter(r=>r.ev==e.id).forEach(r=>{const q=lastQ(r),seen=new Set();if(q[0])g(q[0].did).po++;
+function stats(e,only){const m={},g=d=>m[d]=m[d]||Z();evD(e).forEach(g);
+(only||S.rc.filter(r=>r.ev==e.id)).forEach(r=>{const q=gridQ(r),seen=new Set();if(q[0])g(q[0].did).po++;
 [['sp',PS],['fe',PF]].forEach(([k,P])=>{r[k].forEach((x,i)=>{const s=g(x.did);seen.add(x.did);if(k=='sp')s.sp++;
 if(x.st){const f=x.st.toLowerCase();if(f in s)s[f]++}else{s.p+=P[i]||0;if(k=='fe'){if(!i)s.w++;if(i<3)s.pd++}else if(!i)s.sw++;const gi=q.findIndex(y=>y.did==x.did)+1;if(gi)s.gp+=gi-(i+1)}});
 if(r.fl[k])g(r.fl[k]).fl++;if(r.dr[k])g(r.dr[k]).dr++});seen.forEach(d=>g(d).r++)});
-if(e.done){const t=Object.keys(m).sort((a,b)=>m[b].p-m[a].p||m[b].w-m[a].w)[0];if(t&&m[t].p>0)m[t].t=1}return m}
-function dItems(e){const m=stats(e);return Object.keys(m).map(d=>({k:d,n:dn(d),t:tmO(e,d).name||'-',c:tc(e,d),c2:tmO(e,d).col2||'',v:m[d]}))}
+if(e.done&&!only){const t=Object.keys(m).sort((a,b)=>m[b].p-m[a].p||m[b].w-m[a].w)[0];if(t&&m[t].p>0)m[t].t=1}return m}
+/* team of a driver in one round (set per round in Manager), else the registered team */
+const tmR=(e,d,r)=>{const id=r&&r.tm&&r.tm[d],t=id&&evT(e).find(x=>x.id==id);return t||tmO(e,d)};
+const tcR=(e,d,r)=>tmR(e,d,r).col||'#8b93a7',noR=(e,d,r)=>(tmR(e,d,r).num||{})[d]||noOf(e,d);
+/* latest team a driver raced for (shown in driver standings) */
+const drvTm=(e,d)=>{const rs=S.rc.filter(r=>r.ev==e.id);for(let i=rs.length-1;i>=0;i--){const r=rs[i];if([...r.q.flat(),...r.sp,...r.fe].some(x=>x.did==d))return tmR(e,d,r)}return tmO(e,d)};
+function dItems(e){const m=stats(e);return Object.keys(m).map(d=>{const t=drvTm(e,d);return{k:d,n:dn(d),t:t.name||'-',c:t.col||'#8b93a7',c2:t.col2||'',v:m[d]}})}
 function tItems(e){const m=stats(e),o={};evT(e).forEach(t=>o[t.id]={n:t.name,t:'',c:t.col||'#8b93a7',c2:t.col2||'',v:Z()});
-Object.keys(m).forEach(d=>{const t=tmO(e,d);if(t.id)addAll(o[t.id].v,m[d],1)});
+S.rc.filter(r=>r.ev==e.id).forEach(r=>{const mr=stats(e,[r]);Object.keys(mr).forEach(d=>{const t=tmR(e,d,r);if(t.id&&o[t.id])addAll(o[t.id].v,mr[d],1)})});
 if(e.done){const top=Object.values(o).sort((a,b)=>b.v.p-a.v.p||b.v.w-a.v.w)[0];if(top&&top.v.p>0)top.v.t=1}return Object.values(o)}
 /* Legends Point (LP) system */
 const CAT=['Open Wheel','GT Racing','Prototype Racing','Touring Car Racing','Cup Racing','Production Car Racing','Stock Car Racing','Rally','Rally-Raid','Rallycross','Off-Road Racing','Drag Racing','Drifting','Karting','Electric Racing','Endurance Racing','Hill Climb','Time Attack','Autocross','Truck Racing','Historic Racing'];
