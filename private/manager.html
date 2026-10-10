@@ -11,7 +11,7 @@ const nmL=d=>{const x=S.dr.find(y=>y.did==d);return x?nmLabel(x):d};
 const dopts=(e,sel)=>opt([['','Select driver']].concat(evD(e).map(d=>[d,nmL(d)])),sel);
 const rng=s=>s=='fe'?[5,10]:[5,20];
 function ldEd(r){const s=ed.ses,rows=get(r,s),[a,b]=rng(s);ed.rows=rows.map(x=>({...x}));ed.n=Math.min(b,Math.max(a,rows.length||a));ed.fl=r.fl[s]||'';ed.dr=r.dr[s]||'';ed.lt=fmtLT((r.lt||{})[s]||'');if(s[0]=='q')ed.rows.forEach(x=>{if(x.st=='DNS')x.st='DNQ'})}
-function col(){ed.rows=[...Array(ed.n)].map((_,i)=>({did:($('#p'+i)||{}).value||'',tyre:($('#y'+i)||{}).value||'Soft',st:($('#s'+i)||{}).value||''}));if($('#fl')){ed.fl=$('#fl').value;ed.dr=$('#dd').value}if($('#lt'))ed.lt=$('#lt').value.trim()}
+function col(){ed.rows=[...Array(ed.n)].map((_,i)=>({did:($('#p'+i)||{}).value||'',tyre:($('#y'+i)||{}).value||'Soft',st:($('#s'+i)||{}).value||''}));if($('#fl')){ed.fl=$('#fl').value;ed.dr=$('#dd').value}if($('#lt'))ed.lt=$('#lt').value.trim();ed.tms={};ed.rows.forEach((x,i)=>{const t=$('#t'+i);if(t&&x.did)ed.tms[x.did]=t.value})}
 const chN=v=>{col();ed.n=+v;render()},chS=v=>{ed.ses=v;ldEd(S.rc.find(r=>r.id==ed.rid));render()},chR=v=>{ed.rid=v;ldEd(S.rc.find(r=>r.id==v));render()};
 function saveTy(){const e=E(),n=parseInt($('#cal').value);if(!(n>=1))return say('Calendar races must be at least 1.');
 const g=k=>{const o={};TC.forEach(c=>o[c]=Math.max(0,parseInt($('#a_'+k+'_'+c).value)||0));return o},sm=o=>TC.reduce((a,c)=>a+o[c],0),q=g('q'),r=g('r');
@@ -21,11 +21,10 @@ function saveEx(i){const e=E(),d=evD(e)[i];e.ty=e.ty||{};const o={q:{},r:{}};['q
 function fltD(i){const e=E(),q=$('#k'+i).value.trim().toLowerCase(),sel=$('#p'+i),cur=sel.value,used=new Set([...Array(ed.n)].map((_,j)=>j==i?'':($('#p'+j)||{}).value).filter(Boolean));
 let L=evD(e).filter(d=>d==cur||(!used.has(d)&&(!q||nmL(d).toLowerCase().includes(q)||d.includes(q))));
 let v=cur;if(!v&&/^\d{4}$/.test(q)&&L.length==1)v=L[0];
-sel.innerHTML=opt([['','Select driver']].concat(L.map(d=>[d,nmL(d)+' ('+d+')'])),v)}
+sel.innerHTML=opt([['','Select driver']].concat(L.map(d=>[d,nmL(d)+' ('+d+')'])),v);syncT(i)}
 let rtApply=false;
-function saveRt(){const e=E(),r=S.rc.find(x=>x.id==ed.rid),rs=S.rc.filter(x=>x.ev==e.id),at=rs.findIndex(x=>x.id==r.id),ap=$('#rtall').checked;rtApply=ap;let n=0;
-document.querySelectorAll('[data-rt]').forEach(sel=>{const d=sel.dataset.rt,cur=tmR(e,d,r).id||'';if(sel.value&&sel.value!=cur){(ap?rs.slice(at):[r]).forEach(x=>{x.tm=x.tm||{};x.tm[d]=sel.value});n++}});
-save();say(n?'Team changed for '+n+' driver'+(n>1?'s':'')+(ap?' from this round onward.':' in this round.'):'No team changes.');render()}
+const rrNow=()=>S.rc.find(x=>x.id==ed.rid);
+function syncT(i){const e=E(),d=$('#p'+i).value,t=$('#t'+i);if(t)t.value=d?(tmR(e,d,rrNow()).id||''):''}
 function saveRes(){col();const r=S.rc.find(x=>x.id==ed.rid),s=ed.ses,ids=ed.rows.map(x=>x.did);
 if(ids.some(x=>!x))return say('Every position needs a driver.');if(new Set(ids).size<ids.length)return say('A driver cannot be selected twice.');
 if(s[0]=='q'&&ed.lt&&!okLT(ed.lt))return say('Lap time format: 1.23,45 (minutes.seconds,hundredths)');
@@ -33,7 +32,10 @@ const ev=S.ev.find(x=>x.id==r.ev),oldQm=r.qm,bk=s[0]=='q'?r.q[+s[1]]:r[s];
 if(s[0]=='q'){r.q[+s[1]]=ed.rows;const m=$('#qm');if(m)r.qm=m.value||undefined}else r[s]=ed.rows;
 const msg=s=='sp'?'':tyCheck(ev,ids,s[0]=='q'?'q':'r');
 if(msg){if(s[0]=='q'){r.q[+s[1]]=bk;r.qm=oldQm}else r[s]=bk;return say(msg)}
-if(s[0]!='q'){r.fl[s]=ed.fl;r.dr[s]=ed.dr}else{r.lt=r.lt||{};if(ed.lt)r.lt[s]=ed.lt;else delete r.lt[s]}save();say('Results saved. Grid, standings and tyre stock update automatically.')}
+if(s[0]!='q'){r.fl[s]=ed.fl;r.dr[s]=ed.dr}else{r.lt=r.lt||{};if(ed.lt)r.lt[s]=ed.lt;else delete r.lt[s]}
+const ap=$('#rtall')&&$('#rtall').checked;rtApply=!!ap;const rs=S.rc.filter(x=>x.ev==ev.id),at=rs.findIndex(x=>x.id==r.id);let nt=0;
+Object.keys(ed.tms||{}).forEach(d=>{const v=ed.tms[d];if(v&&v!=(tmR(ev,d,r).id||'')){(ap?rs.slice(at):[r]).forEach(x=>{x.tm=x.tm||{};x.tm[d]=v});nt++}});
+save();say('Results saved. Grid, standings and tyre stock update automatically.'+(nt?' Team changed for '+nt+' driver'+(nt>1?'s':'')+(ap?' from this round onward.':' in this round.'):''))}
 function addEv(){const n=$('#en').value.trim(),q=+$('#eq').value,c=colorVal('ecl');if(!n||q<1)return say('Enter an event name and team quota.');if(!c)return say('Enter a valid hex color, e.g. #E10600.');
 const e={id:uid(),name:n,cls:$('#ec').value,cat:$('#ecat').value,quota:q,cal:Math.max(1,parseInt($('#ecal').value)||10),soc:$('#es').checked,reg:$('#er').checked,col:c};S.ev.push(e);curEv=e.id;save();say('Event created.');render()}
 function addRc(){const e=E(),c=$('#rcc').value.trim();if(!e||!c)return say('Select an event and enter a circuit name.');if(!$('#rf').value)return say('Select a country.');
@@ -79,16 +81,14 @@ if(at=='rc')return h+`<div class=f><h3>Add Race</h3><label>Date</label><input id
 if(!rs.length)return h+'<p class=m>Add a race first.</p>';
 if(!rs.some(r=>r.id==ed.rid)){ed.rid=rs[0].id;ldEd(rs[0])}
 const s=ed.ses,[a,b]=rng(s);
-{const rr=S.rc.find(x=>x.id==ed.rid),ts=evT(e),dd=evD(e).filter(d=>[...rr.q.flat(),...rr.sp,...rr.fe].some(x=>x.did==d)||!(rr.q.flat().length+rr.sp.length+rr.fe.length));
-h+=`<div class=f><h3>Teams in this round</h3><p class=m>Change a driver's team for ${esc(rr.circ)}. Points and results of this round count for the team chosen here.</p><label>Race</label><select onchange=chR(this.value)>${opt(rs.map((x,i)=>[x.id,'Round '+(i+1)+' - '+x.circ]),ed.rid)}</select>${dd.length?dd.map(d=>`<div class=rbox><b>${esc(nmL(d))}</b><select data-rt="${d}" style="margin-top:6px">${opt([['','No team']].concat(ts.map(t=>[t.id,t.name])),tmR(e,d,rr).id||'')}</select></div>`).join(''):'<p class=m>No drivers yet.</p>'}<label class=ck><input id=rtall type=checkbox ${rtApply?'checked':''}> Also apply to all later rounds</label><button class=bt onclick=saveRt()>Save Teams</button></div>`}
 h+=`<div class=f><h3>Enter Results</h3><label>Race</label><select onchange=chR(this.value)>${opt(rs.map((x,i)=>[x.id,'Round '+(i+1)+' - '+x.circ]),ed.rid)}</select><label>Session</label><select onchange=chS(this.value)>${opt(Object.entries(NM),s)}</select><label>Number of drivers</label><select onchange=chN(this.value)>${opt([...Array(b-a+1)].map((_,i)=>[a+i,(a+i)+' drivers']),ed.n)}</select>`;
 if(s[0]=='q'){const rr=rs.find(x=>x.id==ed.rid)||{};h+=`<label>Qualifying tyre counting for this race</label><select id=qm>${opt([['','Event default ('+(e.qm=='each'?'every session':'once per race')+')'],['one','Count once per race'],['each','Count every session']],rr.qm||'')}</select>`}
 const stO=s[0]=='q'?[['','Finished'],['DSQ','DSQ'],['DNQ','DNQ'],['DNF','DNF']]:[['','Finished'],['DSQ','DSQ'],['DNS','DNS'],['DNF','DNF']];
 if(s[0]=='q')h+=`<label>Pole lap time (Position 1)</label><input id=lt value="${esc(ed.lt||'')}" placeholder="1.23,45" autocomplete=off>`;
 h+=`<div class=sec>Positions</div>`;
-for(let i=0;i<ed.n;i++){const x=ed.rows[i]||{};h+=`<div class=rbox><div class=rt><b class="pb ${i?'':'p1'}">P${i+1}</b><span id=yd${i}>${tyDot(x.tyre||'Soft')}</span></div><label>Driver</label><input id=k${i} placeholder="Search name or DID" oninput="fltD(${i})" autocomplete=off><select id=p${i} style="margin-top:6px">${dopts(e,x.did)}</select><div class=g2><div><label>Tyre</label><select id=y${i} onchange="$('#yd${i}').innerHTML=tyDot(this.value)">${opt(TY.map(t=>[t,t]),x.tyre)}</select></div><div><label>Status</label><select id=s${i}>${opt(stO,x.st)}</select></div></div></div>`}
+for(let i=0;i<ed.n;i++){const x=ed.rows[i]||{};h+=`<div class=rbox><div class=rt><b class="pb ${i?'':'p1'}">P${i+1}</b><span id=yd${i}>${tyDot(x.tyre||'Soft')}</span></div><label>Driver</label><input id=k${i} placeholder="Search name or DID" oninput="fltD(${i})" autocomplete=off><select id=p${i} style="margin-top:6px" onchange="syncT(${i})">${dopts(e,x.did)}</select><label>Team</label><select id=t${i}>${opt([['','No team']].concat(evT(e).map(t=>[t.id,t.name])),x.did?(tmR(e,x.did,rrNow()).id||''):'')}</select><div class=g2><div><label>Tyre</label><select id=y${i} onchange="$('#yd${i}').innerHTML=tyDot(this.value)">${opt(TY.map(t=>[t,t]),x.tyre)}</select></div><div><label>Status</label><select id=s${i}>${opt(stO,x.st)}</select></div></div></div>`}
 if(s[0]!='q')h+=`<div class=sec>Awards</div><label>Fastest Lap</label><select id=fl>${dopts(e,ed.fl)}</select><label>Driver of the Race</label><select id=dd>${dopts(e,ed.dr)}</select>`;
-return h+`<button class=bt onclick=saveRes()>Save Results</button>${evD(e).length<5?'<p class=m>Drivers show up here once teams have registered.</p>':''}</div>`}
+return h+`<label class=ck style="margin-top:14px"><input id=rtall type=checkbox ${rtApply?'checked':''}> If a driver's team is changed, also apply it to all later rounds</label><button class=bt onclick=saveRes()>Save Results</button>${evD(e).length<5?'<p class=m>Drivers show up here once teams have registered.</p>':''}</div>`}
 function render(){mount('Manager',null,null,pAd(),'#e10600');if(at=='tm'&&eT&&E())pfAll(true)}
 render();READY.then(render);
 </script></body></html>
