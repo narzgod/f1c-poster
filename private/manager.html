@@ -10,7 +10,7 @@ const E=()=>S.ev.find(x=>x.id==curEv)||S.ev[0];
 const nmL=d=>{const x=S.dr.find(y=>y.did==d);return x?nmLabel(x):d};
 const dopts=(e,sel)=>opt([['','Select driver']].concat(evD(e).map(d=>[d,nmL(d)])),sel);
 const rng=s=>s=='fe'?[5,10]:[5,20];
-function ldEd(r){const s=ed.ses,rows=get(r,s),[a,b]=rng(s);ed.rows=rows.map(x=>({...x}));ed.n=Math.min(b,Math.max(a,rows.length||a));ed.fl=r.fl[s]||'';ed.dr=r.dr[s]||'';ed.lt=(r.lt||{})[s]||'';if(s[0]=='q')ed.rows.forEach(x=>{if(x.st=='DNS')x.st='DNQ'})}
+function ldEd(r){const s=ed.ses,rows=get(r,s),[a,b]=rng(s);ed.rows=rows.map(x=>({...x}));ed.n=Math.min(b,Math.max(a,rows.length||a));ed.fl=r.fl[s]||'';ed.dr=r.dr[s]||'';ed.lt=fmtLT((r.lt||{})[s]||'');if(s[0]=='q')ed.rows.forEach(x=>{if(x.st=='DNS')x.st='DNQ'})}
 function col(){ed.rows=[...Array(ed.n)].map((_,i)=>({did:($('#p'+i)||{}).value||'',tyre:($('#y'+i)||{}).value||'Soft',st:($('#s'+i)||{}).value||''}));if($('#fl')){ed.fl=$('#fl').value;ed.dr=$('#dd').value}if($('#lt'))ed.lt=$('#lt').value.trim()}
 const chN=v=>{col();ed.n=+v;render()},chS=v=>{ed.ses=v;ldEd(S.rc.find(r=>r.id==ed.rid));render()},chR=v=>{ed.rid=v;ldEd(S.rc.find(r=>r.id==v));render()};
 function saveTy(){const e=E(),n=parseInt($('#cal').value);if(!(n>=1))return say('Calendar races must be at least 1.');
@@ -24,7 +24,7 @@ let v=cur;if(!v&&/^\d{4}$/.test(q)&&L.length==1)v=L[0];
 sel.innerHTML=opt([['','Select driver']].concat(L.map(d=>[d,nmL(d)+' ('+d+')'])),v)}
 function saveRes(){col();const r=S.rc.find(x=>x.id==ed.rid),s=ed.ses,ids=ed.rows.map(x=>x.did);
 if(ids.some(x=>!x))return say('Every position needs a driver.');if(new Set(ids).size<ids.length)return say('A driver cannot be selected twice.');
-if(s[0]=='q'&&ed.lt&&!/^(\d{1,2}:)?\d{1,2}\.\d{1,3}$/.test(ed.lt))return say('Lap time format: 1:23.456');
+if(s[0]=='q'&&ed.lt&&!okLT(ed.lt))return say('Lap time format: 1.23,45 (minutes.seconds,hundredths)');
 const ev=S.ev.find(x=>x.id==r.ev),oldQm=r.qm,bk=s[0]=='q'?r.q[+s[1]]:r[s];
 if(s[0]=='q'){r.q[+s[1]]=ed.rows;const m=$('#qm');if(m)r.qm=m.value||undefined}else r[s]=ed.rows;
 const msg=s=='sp'?'':tyCheck(ev,ids,s[0]=='q'?'q':'r');
@@ -78,7 +78,7 @@ const s=ed.ses,[a,b]=rng(s);
 h+=`<div class=f><h3>Enter Results</h3><label>Race</label><select onchange=chR(this.value)>${opt(rs.map((x,i)=>[x.id,'Round '+(i+1)+' - '+x.circ]),ed.rid)}</select><label>Session</label><select onchange=chS(this.value)>${opt(Object.entries(NM),s)}</select><label>Number of drivers</label><select onchange=chN(this.value)>${opt([...Array(b-a+1)].map((_,i)=>[a+i,(a+i)+' drivers']),ed.n)}</select>`;
 if(s[0]=='q'){const rr=rs.find(x=>x.id==ed.rid)||{};h+=`<label>Qualifying tyre counting for this race</label><select id=qm>${opt([['','Event default ('+(e.qm=='each'?'every session':'once per race')+')'],['one','Count once per race'],['each','Count every session']],rr.qm||'')}</select>`}
 const stO=s[0]=='q'?[['','Finished'],['DSQ','DSQ'],['DNQ','DNQ'],['DNF','DNF']]:[['','Finished'],['DSQ','DSQ'],['DNS','DNS'],['DNF','DNF']];
-if(s[0]=='q')h+=`<label>Pole lap time (Position 1)</label><input id=lt value="${esc(ed.lt||'')}" placeholder="1:23.456" inputmode="decimal" autocomplete=off>`;
+if(s[0]=='q')h+=`<label>Pole lap time (Position 1)</label><input id=lt value="${esc(ed.lt||'')}" placeholder="1.23,45" autocomplete=off>`;
 h+=`<div class=sec>Positions</div>`;
 for(let i=0;i<ed.n;i++){const x=ed.rows[i]||{};h+=`<div class=rbox><div class=rt><b class="pb ${i?'':'p1'}">P${i+1}</b><span id=yd${i}>${tyDot(x.tyre||'Soft')}</span></div><label>Driver</label><input id=k${i} placeholder="Search name or DID" oninput="fltD(${i})" autocomplete=off><select id=p${i} style="margin-top:6px">${dopts(e,x.did)}</select><div class=g2><div><label>Tyre</label><select id=y${i} onchange="$('#yd${i}').innerHTML=tyDot(this.value)">${opt(TY.map(t=>[t,t]),x.tyre)}</select></div><div><label>Status</label><select id=s${i}>${opt(stO,x.st)}</select></div></div></div>`}
 if(s[0]!='q')h+=`<div class=sec>Awards</div><label>Fastest Lap</label><select id=fl>${dopts(e,ed.fl)}</select><label>Driver of the Race</label><select id=dd>${dopts(e,ed.dr)}</select>`;

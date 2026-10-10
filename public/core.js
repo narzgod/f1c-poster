@@ -30,7 +30,10 @@ const isOpen=e=>e.reg!==false,isFull=e=>evT(e).length>=e.quota;
 const regTxt=e=>!isOpen(e)?'Registration Closed':isFull(e)?'Registration Full':'Registration Open';
 const tmO=(e,d)=>evT(e).find(t=>t.d.slice(0,2).includes(d))||evT(e).find(t=>t.d.includes(d))||{},tc=(e,d)=>tmO(e,d).col||'#8b93a7',noOf=(e,d)=>(tmO(e,d).num||{})[d]||'-';
 const get=(r,s)=>s[0]=='q'?r.q[+s[1]]:r[s];
-const lastQi=r=>{for(let i=2;i>=0;i--)if(r.q[i]&&r.q[i].length)return i;return -1};const poleLT=r=>{const i=lastQi(r);return i<0?'':((r.lt||{})['q'+i]||'')};
+const lastQi=r=>{for(let i=2;i>=0;i--)if(r.q[i]&&r.q[i].length)return i;return -1};/* lap time format: m.ss,hh (example 1.23,45). Older saved times like 1:23.456 are converted on display. */
+const fmtLT=v=>{v=String(v||'').trim();if(/^(\d{1,2}\.)?\d{2},\d{2}$/.test(v))return v;const m=v.match(/^(?:(\d{1,2}):)?(\d{1,2})\.(\d{1,3})$/);if(!m)return v;let t=Math.round((+m[1]||0)*6000+(+m[2])*100+Math.round(+('0.'+m[3])*100));const mi=Math.floor(t/6000),se=Math.floor(t%6000/100),hh=t%100,p2=n=>String(n).padStart(2,'0');return(m[1]!=null?mi+'.':'')+(m[1]!=null?p2(se):se<10?p2(se):se)+','+p2(hh)};
+const okLT=v=>/^(\d{1,2}\.)?\d{2},\d{2}$/.test(v);
+const poleLT=r=>{const i=lastQi(r);return i<0?'':fmtLT((r.lt||{})['q'+i]||'')};
 const lastQ=r=>{const q=r.q.filter(a=>a.length);return q.length?q[q.length-1]:[]};
 const opt=(a,sel)=>a.map(([v,t])=>`<option value="${esc(v)}" ${v==sel?'selected':''}>${esc(t)}</option>`).join('');
 const chips=a=>`<div class=ch>${a.map(([t,h,on])=>`<a href="${h}" class="${on?'on':''}">${t}</a>`).join('')}</div>`;
