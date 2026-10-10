@@ -1,0 +1,38 @@
+/* Save the current table as a JPG: full table, nothing cut off, nothing wrapped */
+let EXP={title:'',sub:'',note:[]};
+const expBtn=()=>'<button class="bt s" onclick="saveImg()">Save as JPG</button>';
+const b64=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
+async function saveImg(){
+  const src=document.querySelector('#app .sc');if(!src)return say('Nothing to save yet.');
+  say('Preparing image...');
+  try{
+    let css=await (await fetch('/style.css')).text();
+    const fonts=[...new Set((css.match(/url\(\/fonts\/[^)]+\)/g)||[]))];
+    for(const u of fonts){const p=u.slice(4,-1),d=await b64(await (await fetch(p)).blob());css=css.split(u).join('url('+d+')')}
+    const host=document.createElement('div');host.id='xhost';
+    host.style.cssText='position:fixed;left:-100000px;top:0;width:max-content';
+    const note=(EXP.note||[]).map(([k,v])=>`<span class="xn"><small>${esc(k)}</small>${esc(v)}</span>`).join('');
+    host.innerHTML=`<div xmlns="http://www.w3.org/1999/xhtml" id="xroot" style="display:inline-block;background:#0c0d12;color:#f2f4f8;padding:30px 32px 22px;font-family:'MotoGP Text',Arial,sans-serif;font-size:15px;line-height:1.5;box-sizing:border-box"><div class="xh"><div class="br">fRacing <b>LEGENDS</b></div><div class="xt">${esc(EXP.title)}</div><div class="xs">${esc(EXP.sub||'')}</div>${note?`<div class="xnn">${note}</div>`:''}</div><div class="xtb"></div><div class="xf">frl1championship.vercel.app</div></div>`;
+    const tb=src.cloneNode(true);tb.removeAttribute('data-fit');tb.className='sc';tb.style.cssText='overflow:visible;border-radius:12px';
+    const t=tb.querySelector('table');t.style.cssText='width:max-content;zoom:1';
+    for(const im of tb.querySelectorAll('img')){const x=await (await fetch(im.getAttribute('src'))).text();im.setAttribute('src','data:image/svg+xml;charset=utf-8,'+encodeURIComponent(x))}
+    host.querySelector('.xtb').replaceWith(tb);
+    document.body.appendChild(host);
+    const root=host.querySelector('#xroot');
+    await (document.fonts&&document.fonts.ready);
+    const W=Math.ceil(Math.max(root.scrollWidth,t.offsetWidth+64,420)),H=Math.ceil(root.getBoundingClientRect().height);
+    root.style.width=W+'px';
+    const H2=Math.ceil(root.getBoundingClientRect().height);
+    const xml=new XMLSerializer().serializeToString(root);
+    document.body.removeChild(host);
+    const extra=`.xh{margin-bottom:18px}.xh .br{font-family:var(--f-title);font-size:16px;letter-spacing:.04em}.xt{font-family:var(--f-title);font-size:26px;margin-top:6px;line-height:1.2}.xs{font-family:var(--f-ui);font-weight:700;color:#e10600;letter-spacing:.08em;text-transform:uppercase;font-size:13px;margin-top:2px}.xnn{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.xn{background:#14161d;border:1px solid #262a36;border-radius:10px;padding:8px 12px;font-size:14px}.xn small{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8b93a7;font-weight:700}.xf{margin-top:14px;color:#8b93a7;font-size:12px;text-align:right}`;
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H2}"><foreignObject x="0" y="0" width="${W}" height="${H2}"><style><![CDATA[${css}\n${extra}]]></style>${xml}</foreignObject></svg>`;
+    const img=new Image();
+    await new Promise((ok,no)=>{img.onload=ok;img.onerror=no;img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)});
+    const k=2,cv=document.createElement('canvas');cv.width=W*k;cv.height=H2*k;const cx=cv.getContext('2d');cx.fillStyle='#0c0d12';cx.fillRect(0,0,cv.width,cv.height);cx.scale(k,k);cx.drawImage(img,0,0,W,H2);
+    const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',.93));
+    const a=document.createElement('a'),nm=((EXP.title||'table')+' '+(EXP.sub||'')).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    a.href=URL.createObjectURL(blob);a.download=nm+'.jpg';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    say('Image saved as '+nm+'.jpg');
+  }catch(e){const h=document.getElementById('xhost');if(h)h.remove();say('Could not create the image on this browser. Try Chrome.')}
+}

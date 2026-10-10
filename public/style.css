@@ -70,3 +70,18 @@ td,.tp,.m{font-family:var(--f-body)}
 .fw{flex:0 0 64px;width:64px;display:flex;align-items:center;justify-content:center}
 .fr{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .fb0{font-weight:700;color:var(--m);font-size:12px}
+
+/* fit-to-screen tables, tyre marks, pole lap time, type-ahead chips */
+.sc.fit{overflow-x:auto}.sc.fit th,.sc.fit td{padding:9px 7px}
+.td{display:inline-grid;place-items:center;border-radius:50%;background:var(--tc);color:#fff;font-family:var(--f-ui);font-weight:700;line-height:1;border:1px solid rgba(255,255,255,.4);text-shadow:0 0 2px #000,0 0 3px #000,0 0 1px #000,0 0 4px #000;vertical-align:middle}
+.tf{display:inline-flex;align-items:center;gap:5px;vertical-align:middle}.tl{flex:none;display:block}
+.lt{color:var(--a);font-family:var(--f-ui);font-weight:700;margin-left:6px;white-space:nowrap}
+.sg{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0}.sg:empty{display:none}
+.sgb{background:var(--s2);border:1px solid var(--a);color:var(--t);border-radius:99px;padding:7px 12px;font-size:13px;font-family:var(--f-ui);cursor:pointer}
+.rbox{background:#232733;border:1px solid #3a4052;border-radius:12px;padding:12px;margin:0 0 10px}
+.rbox .rt{display:flex;align-items:center;gap:10px;margin-bottom:6px}.rbox .rt b{font-family:var(--f-title)}
+.rbox .g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.rbox label{margin:10px 0 4px!important}
+.rbox select,.rbox input:not([type=checkbox]){background:#171a22;border-color:#3a4052}
+.dlist{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.dlist .dn{flex:1;min-width:150px;font-family:var(--f-title)}
+a.wa{display:inline-block;background:#1f8f4a;color:#fff;text-decoration:none;border-radius:8px;padding:7px 12px;font-size:13px;font-family:var(--f-ui);font-weight:700}
+details.f summary{cursor:pointer;list-style:none}details.f summary::-webkit-details-marker{display:none}

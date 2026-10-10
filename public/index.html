@@ -2,6 +2,7 @@
 <div id="top"><div class="tb" id="tb"></div></div><div class="w"><div id="msg"></div><div id="app"></div></div><div id="bar"></div>
 <script src="core.js"></script>
 <script src="flags.js"></script>
+<script src="export.js"></script>
 <script>
 const dc=e=>e.col||'#e10600',stripe=(c,c2)=>`--a:${c};--c2:${c2||c};--stripe:linear-gradient(${c},${c2||c})`;
 const nameTag=(n,c,c2)=>`<span class=tn style="color:${c};--c2:${c2||'transparent'}">${esc(n)}</span>`;
@@ -13,35 +14,39 @@ return`<a class=cd href="#/r/${r.id}"><div class=rw><div class=fw>${flagImg(r.fl
 function pRes(e,r,ses){const av=Object.keys(NM).filter(s=>get(r,s).length),h0=`<div class=rh><div class=fw style="flex-basis:92px;width:92px">${flagImg(r.flag,92,64)}</div><div><h2>${esc(r.circ)}</h2>`;
 if(!av.length)return h0+'</div></div><p class=m>No results yet.</p>';
 if(!av.includes(ses))ses=av.includes('fe')?'fe':av.includes('sp')?'sp':av[av.length-1];
-const rows=get(r,ses),q=lastQ(r),isR=ses[0]!='q',pole=q[0]?esc(dn(q[0].did)):'-';
-return h0+`<div>${NM[ses]}</div></div></div><div class=fx>${isR?`<div>Fastest Lap<i>${esc(dn(r.fl[ses])||'-')}</i></div>`:''}<div>Pole Position<i>${pole}</i></div>${isR?`<div>Driver of the Race<i>${esc(dn(r.dr[ses])||'-')}</i></div>`:''}</div>`+
+const rows=get(r,ses),q=lastQ(r),isR=ses[0]!='q',pole=q[0]?esc(dn(q[0].did)):'-',plt=poleLT(r),stx=x=>!isR&&x=='DNS'?'DNQ':x;
+EXP={title:e.name+' - '+r.circ,sub:NM[ses]+(r.date?' - '+r.date:''),note:[['Pole Position',dn((q[0]||{}).did||'')+(plt?' ('+plt+')':'')],isR?['Fastest Lap',dn(r.fl[ses])]:null,isR?['Driver of the Race',dn(r.dr[ses])]:null].filter(x=>x&&x[1]&&x[1]!=' ()'),flag:r.flag};
+return h0+`<div>${NM[ses]}</div></div></div><div class=fx>${isR?`<div>Fastest Lap<i>${esc(dn(r.fl[ses])||'-')}</i></div>`:''}<div>Pole Position<i>${pole}${plt?` <span class=lt>${esc(plt)}</span>`:''}</i></div>${isR?`<div>Driver of the Race<i>${esc(dn(r.dr[ses])||'-')}</i></div>`:''}</div>`+
 chips(av.map(s=>[NM[s],'#/r/'+r.id+'/'+s,s==ses]))+
 tbl(['Pos','No','Driver','Team','Grid','Tyre'],rows.map((x,i)=>{const c=tc(e,x.did),g=isR?(q.findIndex(y=>y.did==x.did)+1||'-'):i+1;
-return[`<b class="pb ${x.st?'dim':i==0?'p1':''}">${x.st||i+1}</b>`,`<span style="color:${c}">${esc(noOf(e,x.did))}</span>`,esc(dn(x.did)),nameTag(tmO(e,x.did).name||'-',c,tmO(e,x.did).col2),g,esc((x.tyre||'')[0]||'')]}))}
-function rankView(items,base,scope,stat,isTeam,champ){stat=SC.some(x=>x[0]==stat)?stat:'p';const sd=SC.find(x=>x[0]==stat),B=base+'/'+scope+'/';
+return[`<b class="pb ${x.st?'dim':i==0?'p1':''}">${stx(x.st)||i+1}</b>`,`<span style="color:${c}">${esc(noOf(e,x.did))}</span>`,esc(dn(x.did)),nameTag(tmO(e,x.did).name||'-',c,tmO(e,x.did).col2),g,tyDot(x.tyre)]}),.3)+expBtn()}
+const sd0=k=>(SC.find(x=>x[0]==k)||SC[12])[1];
+function rankView(items,base,scope,stat,isTeam,champ){EXP={title:base.indexOf('board')>0?'Legends Board':'Standings',sub:(isTeam?'Team':'Driver')+' ranking - '+sd0(stat),note:[]};stat=SC.some(x=>x[0]==stat)?stat:'p';const sd=SC.find(x=>x[0]==stat),B=base+'/'+scope+'/';
 const L=[...items].sort((a,b)=>b.v[stat]-a.v[stat]||b.v.p-a.v.p||b.v.w-a.v.w),top=L[0],fm=(k,v)=>k=='gp'&&v>0?'+'+v:v;
 let h=chips([['Drivers',base+'/drv/'+stat,!isTeam],['Teams',base+'/tim/'+stat,isTeam]])+`<div class=ch>${SC.map(([k,n])=>`<a href="${B}${k}" class="${k==stat?'on':''}">${n}</a>`).join('')}</div>`;
 if(champ)h+=`<div class=hero><small>${isTeam?'World Team Champions':'World Driver Champions'}</small><b>${esc(champ.n)}</b></div>`;
 h+=top&&(top.v[stat]||stat=='gp')?`<div class=hero><small>${sd[1]} leader</small><b>${esc(top.n)}</b><span>${fm(stat,top.v[stat])}</span></div>`:'';
 if(!L.length)return h+'<p class=m>No data yet.</p>';
 return h+tbl(['Pos',isTeam?'Team':'Driver'].concat(isTeam?[]:['Team']).concat(SC.map(x=>`<span class="${x[0]==stat?'hl':''}">${x[2]}</span>`)),
-L.map((x,i)=>[`<b class="pb ${i?'':'p1'}">${i+1}</b>`,nameTag(x.n,x.c,x.c2)].concat(isTeam?[]:[nameTag(x.t,x.c,x.c2)]).concat(SC.map(([k])=>`<span class="${k==stat?'hl':''}">${fm(k,x.v[k])}</span>`))))}
+L.map((x,i)=>[`<b class="pb ${i?'':'p1'}">${i+1}</b>`,nameTag(x.n,x.c,x.c2)].concat(isTeam?[]:[nameTag(x.t,x.c,x.c2)]).concat(SC.map(([k])=>`<span class="${k==stat?'hl':''}">${fm(k,x.v[k])}</span>`))),.62)+expBtn()}
 function pStand(e,sub,stat){const isT=sub=='tim',it=isT?tItems(e):dItems(e);let ch=null;
-if(e.done){const t=[...it].sort((a,b)=>b.v.t-a.v.t)[0];if(t&&t.v.t)ch=t}return rankView(it,'#/e/'+e.id+'/stand',sub,stat,isT,ch)}
+if(e.done){const t=[...it].sort((a,b)=>b.v.t-a.v.t)[0];if(t&&t.v.t)ch=t}const h=rankView(it,'#/e/'+e.id+'/stand',sub,stat,isT,ch);EXP.title=e.name+' - Standings';return h}
 function pBoard(sub,stat){if(!S.ev.length)return'<p class=m>No events yet.</p>';const B=board();
 if(sub=='tim')return rankView(B.t,'#/board','tim',stat,true,null);
 const all=lpBoard(),cl=['all'].concat(LCL.map(x=>x[0].toLowerCase())),cur=cl.includes(stat)?stat:'all',L=cur=='all'?all:all.filter(x=>x.cls.toLowerCase()==cur),top=L[0];
 let h=chips([['Drivers','#/board/drv/'+cur,1],['Teams','#/board/tim/p',0]])+`<div class=ch>${cl.map(k=>`<a href="#/board/drv/${k}" class="${k==cur?'on':''}">${k=='all'?'All':k=='rookie'?'Rookie':k.length==1?'Class '+k.toUpperCase():'Pro'} <span class=m>${k=='all'?all.length:all.filter(x=>x.cls.toLowerCase()==k).length}</span></a>`).join('')}</div>`;
 h+=`<p class=m>Legends Points (LP) = Podiums x 10 + Wins x 20. Class comes from the Legends Score, which uses Races, Wins, Podiums, Poles, Sprint Wins and Titles, scaled by each event's category.</p>`;
 if(top)h+=`<div class=hero><small>${cur=='all'?'Legends Board leader':'Class leader'}</small><b>${esc(top.n)}</b><span>${top.lp} LP</span></div>`;
+EXP={title:'Legends Board',sub:cur=='all'?'All classes':(cur=='rookie'?'Rookie':cur.length==1?'Class '+cur.toUpperCase():'Pro'),note:[]};
 if(!L.length)return h+'<p class=m>No drivers in this class yet.</p>';
-return h+tbl(['Pos','Driver','Team','Class','Starts','Wins','Podium','Pole','S.Wins','Titles','Win Rate','<span class=hl>LP</span>','Score'],L.map((x,i)=>[`<b class="pb ${i?'':'p1'}">${i+1}</b>`,nameTag(x.n,x.c,x.c2),nameTag(x.t,x.c,x.c2),'<b>'+x.cls+'</b>',x.v.r,x.v.w,x.v.pd,x.v.po,x.v.sw,x.v.t,x.wr+'%',`<span class=hl>${x.lp}</span>`,(Math.round(x.sc*10)/10)]))}
+return h+tbl(['Pos','Driver','Team','Class','Starts','Wins','Podium','Pole','S.Wins','Titles','Win Rate','<span class=hl>LP</span>','Score'],L.map((x,i)=>[`<b class="pb ${i?'':'p1'}">${i+1}</b>`,nameTag(x.n,x.c,x.c2),nameTag(x.t,x.c,x.c2),'<b>'+x.cls+'</b>',x.v.r,x.v.w,x.v.pd,x.v.po,x.v.sw,x.v.t,x.wr+'%',`<span class=hl>${x.lp}</span>`,(Math.round(x.sc*10)/10)]),.3)+expBtn()}
 function pTeams(e){const ts=evT(e),ok=isOpen(e)&&!isFull(e);
 return`<div class=hero><small>Team slots</small><b>${ts.length} / ${e.quota}</b><span>${regTxt(e)}</span></div>`+(ok?`<a class=cd href="daftar-tim.html?e=${e.id}"><div class=rw><div class=nm>Register a team<small>Open the team registration page</small></div><span>&rsaquo;</span></div></a>`:'')+
 (ts.length?'<div class=sec>Entry list</div>':'<p class=m>No teams registered yet.</p>')+ts.map(t=>`<div class=cd style="${stripe(t.col||'#8b93a7',t.col2)}"><div class=rw><div class=nm style="color:${t.col}">${esc(t.name)}<small>${e.soc&&t.soc?esc(t.soc)+' · ':''}Team Principal ${esc(t.tp)} · Team Owner ${esc(t.ow)}</small></div></div><div class=tp>${t.d.map((d,i)=>d?`<span class=m>${['D1','D2','R1','R2'][i]}</span><span>${(t.num||{})[d]?'#'+t.num[d]+' ':''}${esc(dn(d))}</span>`:'').join('')}</div></div>`).join('')}
 function pTyres(e){const ds=evD(e);if(!ds.length)return'<p class=m>No drivers yet.</p>';
 const qt=e.qm=='each'?'Qualifying counts every session.':'Qualifying counts once per race.';
-return`<p class=m>Tyres left per driver (Q = Qualifying, R = Race). ${calN(e)} races in the calendar, 1 tyre per race. ${qt}</p>`+tbl(['Driver','Q Soft','Q Med','Q Hard','R Soft','R Med','R Hard'],ds.map(d=>{const u=tyUsed(e,d);return[nameTag(dn(d),tc(e,d),tmO(e,d).col2)].concat(['q','r'].flatMap(k=>TC.map(c=>{const t=tyTot(e,d,k,c),l=t-u[k][c];return`<span style="${l<=0?'color:var(--a);font-weight:800':''}">${l}<span class=m>/${t}</span></span>`})))}))}
+EXP={title:e.name,sub:'Tyre Stock',note:[['Calendar',calN(e)+' races'],['Qualifying',e.qm=='each'?'every session counts':'counts once per race']].filter(x=>x[1])};
+return`<p class=m>Tyres left per driver (Q = Qualifying, R = Race). ${calN(e)} races in the calendar, 1 tyre per race. ${qt}</p>`+tbl(['Driver'].concat(['Q','R'].flatMap(k=>TC.map(c=>`${k} ${tyFull(c)}`))),ds.map(d=>{const u=tyUsed(e,d);return[nameTag(dn(d),tc(e,d),tmO(e,d).col2)].concat(['q','r'].flatMap(k=>TC.map(c=>{const t=tyTot(e,d,k,c),l=t-u[k][c];return`<span style="${l<=0?'color:var(--a);font-weight:800':''}">${l}<span class=m>/${t}</span></span>`})))}),.3)+expBtn()}
 function pDaftar(){const n=S.ev.filter(e=>isOpen(e)&&!isFull(e)).length;return`<p class=m>Choose what you'd like to register.</p><a class=cd href="daftar-driver.html"><div class=rw><div class=nm>Driver License<small>Register your name, 4-digit DID and WhatsApp number</small></div><span>&rsaquo;</span></div></a><a class=cd href="daftar-tim.html"><div class=rw><div class=nm>Team Registration<small>${n} event${n==1?'':'s'} open for team entries</small></div><span>&rsaquo;</span></div></a>`}
 function render(){const p=location.hash.slice(1).split('/'),k=p[1];let A='#e10600',T='',bk='',b,tb,e,r;
 const rt=a=>[['Events','#/'],['Legends Board','#/board'],['Register','#/daftar']].map(([n,h],i)=>[n,h,i==a]);

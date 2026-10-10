@@ -30,10 +30,11 @@ const isOpen=e=>e.reg!==false,isFull=e=>evT(e).length>=e.quota;
 const regTxt=e=>!isOpen(e)?'Registration Closed':isFull(e)?'Registration Full':'Registration Open';
 const tmO=(e,d)=>evT(e).find(t=>t.d.slice(0,2).includes(d))||evT(e).find(t=>t.d.includes(d))||{},tc=(e,d)=>tmO(e,d).col||'#8b93a7',noOf=(e,d)=>(tmO(e,d).num||{})[d]||'-';
 const get=(r,s)=>s[0]=='q'?r.q[+s[1]]:r[s];
+const lastQi=r=>{for(let i=2;i>=0;i--)if(r.q[i]&&r.q[i].length)return i;return -1};const poleLT=r=>{const i=lastQi(r);return i<0?'':((r.lt||{})['q'+i]||'')};
 const lastQ=r=>{const q=r.q.filter(a=>a.length);return q.length?q[q.length-1]:[]};
 const opt=(a,sel)=>a.map(([v,t])=>`<option value="${esc(v)}" ${v==sel?'selected':''}>${esc(t)}</option>`).join('');
 const chips=a=>`<div class=ch>${a.map(([t,h,on])=>`<a href="${h}" class="${on?'on':''}">${t}</a>`).join('')}</div>`;
-const tbl=(h,rows)=>`<div class=sc><table><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}</table></div>`;
+const tbl=(h,rows,fit)=>`<div class=sc${fit?` data-fit="${fit}"`:''}><table><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}</table></div>`;
 const hx=v=>{v=(v||'').trim().replace(/^#/,'');if(/^[0-9a-f]{3}$/i.test(v))v=v.split('').map(c=>c+c).join('');return /^[0-9a-f]{6}$/i.test(v)?'#'+v.toLowerCase():''};
 const colorField=(id,label,val)=>`<label>${label}</label><div class=cp><input id=${id} type=color value="${val}" oninput="$('#${id}_h').value=this.value"><input id=${id}_h value="${val}" placeholder="#E10600" maxlength=7 oninput="const c=hx(this.value);if(c)$('#${id}').value=c"></div>`;
 const colorVal=id=>hx(($('#'+id+'_h')||{value:''}).value);
@@ -41,7 +42,15 @@ const normWA=v=>{let s=(v||'').trim();const pl=s.startsWith('+');s=s.replace(/\D
 const waLink=n=>n?`<a href="https://wa.me/${n.replace(/\D/g,'')}" target=_blank rel=noopener style="text-decoration:underline">${esc(n)}</a>`:'-';
 function mount(T,bk,tabs,body,A){A=A||'#e10600';const r=document.documentElement.style;r.setProperty('--a',A);r.setProperty('--ac',contrast(A));
 $('#tb').innerHTML=(bk?`<a class=bk href="${bk}">&larr;</a>`:'')+(T?`<h1>${esc(T)}</h1>`:'<div class=br>fRacing <b>LEGENDS</b></div>');
-$('#bar').innerHTML=tabs?tabs.map(([n,h,on])=>`<a href="${h}" class="${on?'on':''}">${n}</a>`).join(''):'';$('#bar').style.display=tabs?'flex':'none';$('#app').innerHTML=body}
+$('#bar').innerHTML=tabs?tabs.map(([n,h,on])=>`<a href="${h}" class="${on?'on':''}">${n}</a>`).join(''):'';$('#bar').style.display=tabs?'flex':'none';$('#app').innerHTML=body;requestAnimationFrame(fitTables)}
+/* zoom wide tables out so everything fits on screen (data-fit = smallest allowed zoom) */
+function fitTables(){document.querySelectorAll('.sc[data-fit]').forEach(sc=>{const t=sc.querySelector('table');if(!t)return;t.style.zoom='';t.style.width='';sc.classList.add('fit');t.style.width='max-content';const nat=t.offsetWidth,av=sc.clientWidth,mn=parseFloat(sc.dataset.fit)||.3;let z=av>0&&nat>0?Math.min(1,av/nat):1;if(z<mn)z=mn;if(z<1){t.style.zoom=z}else{t.style.zoom='';t.style.width=''}})}
+addEventListener('resize',fitTables);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitTables);
+/* tyre colours: Soft red, Medium yellow, Hard white, Inter green, Wet blue */
+const TYC={Soft:'#e10600',Medium:'#ffd100',Hard:'#f2f2f2',Inter:'#1fb84a',Wet:'#1f78ff'};
+const tyDot=(t,sz)=>{if(!t)return'';sz=sz||22;return`<span class=td style="--tc:${TYC[t]||'#888'};width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.56)}px">${esc(t[0])}</span>`};
+const tyLogo=(t,sz)=>{sz=sz||16;const c=TYC[t]||'#888';return`<svg class=tl width="${sz}" height="${sz}" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#0e0f14" stroke="#3a3f4f" stroke-width="1"/><circle cx="12" cy="12" r="7.6" fill="none" stroke="${c}" stroke-width="3.4"/><circle cx="12" cy="12" r="3.6" fill="#2b2e3a"/></svg>`};
+const tyFull=t=>`<span class=tf>${tyLogo(t)}${esc(t)}</span>`;
 /* in-page tab links replace history so Back never "undoes" a tab tap */
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href^="#"]');if(a){e.preventDefault();location.replace(a.getAttribute('href'))}});
 const Z=()=>({r:0,po:0,w:0,pd:0,dr:0,gp:0,sp:0,sw:0,dnf:0,dsq:0,dns:0,fl:0,p:0,t:0});
@@ -57,11 +66,13 @@ function tItems(e){const m=stats(e),o={};evT(e).forEach(t=>o[t.id]={n:t.name,t:'
 Object.keys(m).forEach(d=>{const t=tmO(e,d);if(t.id)addAll(o[t.id].v,m[d],1)});
 if(e.done){const top=Object.values(o).sort((a,b)=>b.v.p-a.v.p||b.v.w-a.v.w)[0];if(top&&top.v.p>0)top.v.t=1}return Object.values(o)}
 /* Legends Point (LP) system */
-const CAT=['F1','GT3','F3','GT4','MX-5','GR86','Other'],CM={F1:1.2,GT3:1,F3:.8,GT4:.7,'MX-5':.6,GR86:.5},catM=c=>CM[c]||.4;
+const CAT=['Open Wheel','GT Racing','Prototype Racing','Touring Car Racing','Cup Racing','Production Car Racing','Stock Car Racing','Rally','Rally-Raid','Rallycross','Off-Road Racing','Drag Racing','Drifting','Karting','Electric Racing','Endurance Racing','Hill Climb','Time Attack','Autocross','Truck Racing','Historic Racing'];
+const CATOLD={F1:'Open Wheel',F3:'Open Wheel',GT3:'GT Racing',GT4:'GT Racing','MX-5':'Cup Racing',GR86:'Cup Racing'},catOf=e=>CAT.includes(e.cat)?e.cat:(CATOLD[e.cat]||CAT[0]);
+const catM=e=>{const v=parseFloat(((S.cm||{})[catOf(e)]));return v>=0?v:1};
 const LCL=[['Rookie',100],['D',200],['C',250],['B',300],['A',450],['Pro',1e9]],lcOf=sc=>LCL.find(x=>sc<=x[1])[0];
 const baseSc=v=>((v.r/100)*.05+(v.w/10)*.2+(v.pd/15)*.15+(v.po/80)*.07+(v.sw/50)*.03+(v.t/5)*.14)*1000;
-function lpBoard(){const d={};S.ev.forEach(e=>{const m=catM(e.cat);dItems(e).forEach(x=>{const a=d[x.k]=d[x.k]||{k:x.k,n:x.n,t:'-',c:x.c,c2:x.c2,v:Z(),sc:0};addAll(a.v,x.v);a.sc+=baseSc(x.v)*m;if(x.t!='-'){a.t=x.t;a.c=x.c;a.c2=x.c2}})});
-return Object.values(d).map(a=>(a.lp=a.v.pd*10+a.v.w*20,a.cls=lcOf(a.sc),a.wr=a.v.pd>0?Math.round(a.v.w/a.v.pd*10000)/100:0,a)).sort((a,b)=>b.lp-a.lp||b.sc-a.sc||b.v.w-a.v.w||a.n.localeCompare(b.n))}
+function lpBoard(){const d={};S.ev.forEach(e=>{const m=catM(e);dItems(e).forEach(x=>{const a=d[x.k]=d[x.k]||{k:x.k,n:x.n,t:'-',c:x.c,c2:x.c2,v:Z(),sc:0};addAll(a.v,x.v);a.sc+=baseSc(x.v)*m;if(x.t!='-'){a.t=x.t;a.c=x.c;a.c2=x.c2}})});
+return Object.values(d).map(a=>(a.lp=a.v.pd*10+a.v.w*20,a.cls=lcOf(a.sc),a.wr=a.v.r>0?Math.round(a.v.w/a.v.r*10000)/100:0,a)).sort((a,b)=>b.lp-a.lp||b.sc-a.sc||b.v.w-a.v.w||a.n.localeCompare(b.n))}
 function board(){const d={},t={};S.ev.forEach(e=>{dItems(e).forEach(x=>{const a=d[x.k]=d[x.k]||{n:x.n,t:'-',c:x.c,c2:x.c2,v:Z(),ev:0};addAll(a.v,x.v);a.ev++;if(x.t!='-'){a.t=x.t;a.c=x.c;a.c2=x.c2}});
 tItems(e).forEach(x=>{const k=x.n.toLowerCase(),a=t[k]=t[k]||{n:x.n,t:'',c:x.c,c2:x.c2,v:Z()};addAll(a.v,x.v);a.c=x.c;a.c2=x.c2})});return{d:Object.values(d),t:Object.values(t)}}
 function hub(){const B=board(),by=(a,b)=>b.v.p-a.v.p;return{t:Date.now(),teams:B.t.sort(by).map(x=>({name:x.n,col:x.c,col2:x.c2,pts:x.v.p})),drivers:B.d.sort(by).map(x=>({name:x.n,team:x.t,col:x.c,col2:x.c2,pts:x.v.p}))}}
@@ -74,13 +85,15 @@ async function addLicP(n,d,w){await READY;const c=chkLic(n,d,w);if(c.err)return 
 if(SYNC!='cloud'){S.dr.push(c.item);save();return''}const e=await sendReg('driver',c.item);await load();return e}
 let TF=null;
 function teamForm(e,t){TF={e,t:t||null,prev:{}};const x=t||{},V=k=>esc(x[k]||'');
-return`<div class=f><label>Team name</label><input id=tn value="${V('name')}">${e.soc?`<label>Team social account</label><input id=ts value="${V('soc')}">`:''}<label>Team Principal name</label><input id=tp value="${V('tp')}"><label>Team Principal WhatsApp</label><input id=tpw inputmode=tel placeholder="0812-3456-7890" value="${V('tpw')}"><label>Team Owner name</label><input id=ow value="${V('ow')}"><label>Team Owner WhatsApp</label><input id=oww inputmode=tel placeholder="0812-3456-7890" value="${V('oww')}">${colorField('tcl','Main Color',x.col||'#e10600')}${colorField('tcl2','Second Color',x.col2||'#ffffff')}${SL.map(([id,l])=>`<label>${l}${id[0]=='r'?' (optional)':''}</label><div class=pk><input id=q_${id} placeholder="Search name or DID" oninput=pfAll()><select id=${id} onchange=pfAll()></select><input id=n_${id} inputmode=numeric maxlength=2 placeholder="Race number (1-99) - required" hidden></div>`).join('')}</div>`}
+return`<div class=f><label>Team name</label><input id=tn value="${V('name')}">${e.soc?`<label>Team social account</label><input id=ts value="${V('soc')}">`:''}<label>Team Principal name</label><input id=tp value="${V('tp')}"><label>Team Principal WhatsApp</label><input id=tpw inputmode=tel placeholder="0812-3456-7890" value="${V('tpw')}"><label>Team Owner name</label><input id=ow value="${V('ow')}"><label>Team Owner WhatsApp</label><input id=oww inputmode=tel placeholder="0812-3456-7890" value="${V('oww')}">${colorField('tcl','Main Color',x.col||'#e10600')}${colorField('tcl2','Second Color',x.col2||'#ffffff')}${SL.map(([id,l])=>`<label>${l}${id[0]=='r'?' (optional)':''}</label><div class=pk><input id=q_${id} placeholder="Search name or DID" oninput=pfAll()><div class=sg id=sg_${id}></div><select id=${id} onchange=pfAll()></select><input id=n_${id} inputmode=numeric maxlength=2 placeholder="Race number (1-99) - required" hidden></div>`).join('')}</div>`}
+function pickD(id,did){$('#'+id).value=did;$('#q_'+id).value='';pfAll()}
 function pfAll(init){const e=TF.e,cur={};SL.forEach(([id],i)=>{const s=$('#'+id);cur[id]=init?((TF.t&&TF.t.d[i])||''):(s?s.value:'')});
 const taken=new Set(S.tm.filter(t=>t.ev==e.id&&(!TF.t||t.id!=TF.t.id)).flatMap(t=>t.d.slice(0,2)));
 SL.forEach(([id])=>{const q=($('#q_'+id).value||'').trim().toLowerCase(),used=new Set(SL.filter(([k])=>k!=id).map(([k])=>cur[k]).filter(Boolean));
 const L=S.dr.filter(d=>d.did==cur[id]||(!taken.has(d.did)&&!used.has(d.did)&&(!q||d.name.toLowerCase().includes(q)||d.did.includes(q))));
 if(!cur[id]&&/^\d{4}$/.test(q)&&L.length==1)cur[id]=L[0].did;
 $('#'+id).innerHTML=opt([['','Select driver']].concat(L.map(d=>[d.did,nmLabel(d)])),cur[id]);
+const sg=$('#sg_'+id);if(sg)sg.innerHTML=(q&&!cur[id])?(L.length?L.slice(0,6).map(d=>`<button type=button class=sgb onclick="pickD('${id}','${d.did}')">${esc(nmLabel(d))}${ADMIN?' <span class=m>'+d.did+'</span>':''}</button>`).join(''):'<span class=m>No driver found</span>'):'';
 const n=$('#n_'+id);n.hidden=!cur[id];if(TF.prev[id]!==cur[id]){n.value=(init&&cur[id]&&TF.t&&TF.t.num&&TF.t.num[cur[id]])||'';TF.prev[id]=cur[id]}})}
 function saveTeam(admin){const e=TF.e,old=TF.t,v=i=>($('#'+i)||{value:''}).value.trim(),d=SL.map(([id])=>$('#'+id).value),num={},er=m=>{say(m);return false};
 if(!v('tn')||!v('tp')||!v('ow'))return er('Fill in team name, Team Principal and Team Owner.');
@@ -109,6 +122,6 @@ const tyTot=(e,d,k,c)=>(alloc(e)[k][c]||0)+extra(e,d,k,c);
 const qMode=(e,r)=>r.qm||e.qm||'one';
 function tyUsed(e,d){const u={q:{Soft:0,Medium:0,Hard:0},r:{Soft:0,Medium:0,Hard:0}};
 S.rc.filter(r=>r.ev==e.id).forEach(r=>{const f=r.fe.find(x=>x.did==d);if(f&&f.st!='DNS'&&f.tyre in u.r)u.r[f.tyre]++;
-const ts=r.q.map(s=>s.find(x=>x.did==d)).filter(Boolean).map(x=>x.tyre).filter(t=>t in u.q);
+const ts=r.q.map(s=>s.find(x=>x.did==d)).filter(x=>x&&x.st!='DNQ'&&x.st!='DNS').map(x=>x.tyre).filter(t=>t in u.q);
 if(qMode(e,r)=='each')ts.forEach(t=>u.q[t]++);else if(ts.length)u.q[ts[ts.length-1]]++});return u}
 function tyCheck(e,dids,k){for(const d of dids){const u=tyUsed(e,d);for(const c of TC)if(u[k][c]>tyTot(e,d,k,c))return dn(d)+' has no '+c+' tyres left for '+(k=='q'?'Qualifying':'Race')+'. Add supply in the Tyres tab.'}return''}
