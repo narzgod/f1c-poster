@@ -132,6 +132,7 @@ const calN=e=>+e.cal||10;
 const defAl=n=>{const h=Math.floor(n/3);return{Soft:n-2*h,Medium:h,Hard:h}};
 const alloc=e=>({q:e.tq||defAl(calN(e)),r:e.tr||defAl(calN(e))});
 const extra=(e,d,k,c)=>((((e.ty||{})[d]||{})[k]||{})[c])||0;
+const tyHid=(e,d)=>!!((e.th||{})[d]);
 const tyLim=(e,k,c)=>alloc(e)[k][c]||0;
 const tyTot=(e,d,k,c)=>tyLim(e,k,c)+extra(e,d,k,c);
 const qMode=(e,r)=>r.qm||e.qm||'one';

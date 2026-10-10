@@ -43,7 +43,7 @@ return h+tbl(['Pos','Driver','Team','Class','Starts','Wins','Podium','Pole','S.W
 function pTeams(e){const ts=evT(e),ok=isOpen(e)&&!isFull(e);
 return`<div class=hero><small>Team slots</small><b>${ts.length} / ${e.quota}</b><span>${regTxt(e)}</span></div>`+(ok?`<a class=cd href="daftar-tim.html?e=${e.id}"><div class=rw><div class=nm>Register a team<small>Open the team registration page</small></div><span>&rsaquo;</span></div></a>`:'')+
 (ts.length?'<div class=sec>Entry list</div>':'<p class=m>No teams registered yet.</p>')+ts.map(t=>`<div class=cd style="${stripe(t.col||'#8b93a7',t.col2)}"><div class=rw><div class=nm style="color:${t.col}">${esc(t.name)}<small>${e.soc&&t.soc?esc(t.soc)+' · ':''}Team Principal ${esc(t.tp)} · Team Owner ${esc(t.ow)}</small></div></div><div class=tp>${t.d.map((d,i)=>d?`<span class=m>${['D1','D2','R1','R2'][i]}</span><span>${(t.num||{})[d]?'#'+t.num[d]+' ':''}${esc(dn(d))}</span>`:'').join('')}</div></div>`).join('')}
-function pTyres(e){const ds=evD(e);if(!ds.length)return'<p class=m>No drivers yet.</p>';
+function pTyres(e){const all=evD(e),ds=all.filter(d=>!tyHid(e,d));if(!all.length)return'<p class=m>No drivers yet.</p>';if(!ds.length)return'<p class=m>All drivers are hidden from this list.</p>';
 const qt=e.qm=='each'?'Qualifying counts every session.':'Qualifying counts once per race.';
 EXP={title:e.name,sub:'Tyre Stock',note:[['Calendar',calN(e)+' races'],['Qualifying',e.qm=='each'?'every session counts':'counts once per race']].filter(x=>x[1])};
 const th2=TC.map((c,i)=>`<th class="tg2${i==0?' tgl':''}">${tyFull(c)}</th>`).join('');
